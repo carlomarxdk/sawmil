@@ -38,7 +38,7 @@ pip install sawmil
 numpy>=1.22
 scikit-learn>=1.7.0
 gurobipy>=12.0.3
-python>=11.0 # recommended: >=12.3
+python>=3.11.0 # recommended: >=3.12.3
 ```
 
 At this point, `sawmil` package works only with the [Gurobi](https://gurobi.com) optimizer. You need to obtain a academic/commercial license to use it. We plan to add implementations with other solvers.
