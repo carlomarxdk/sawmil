@@ -5,7 +5,7 @@ from typing import Tuple, Optional
 from .objective import Objective
 import logging
 
-log = logging.getLogger("quadprog_gurobi")
+log = logging.getLogger("solvers._gurobi")
 
 
 def quadprog_gurobi(
@@ -15,8 +15,8 @@ def quadprog_gurobi(
     beq: Optional[npt.NDArray[np.float64]],  
     lb: npt.NDArray[np.float64],     
     ub: npt.NDArray[np.float64],      
-    verbose: bool = False,           
-)-> Tuple[npt.NDArray[np.float64], "Objective"]:
+    verbose: bool = False,
+) -> Tuple[npt.NDArray[np.float64], "Objective"]:
     """
     Solve the quadratic program:
 
@@ -38,7 +38,6 @@ def quadprog_gurobi(
         Objective: quadratic and linear parts of the optimum
     """
 
-    # ---- VALIDATION
     try: 
         import gurobipy as gp
     except Exception as exc:  # pragma: no cover
@@ -47,37 +46,11 @@ def quadprog_gurobi(
         raise ValueError("Aeq and beq must both be None or both be provided.")
 
     n = H.shape[0]
-    # ---- COERCION and VALIDATION
-    H = np.asarray(H, dtype=float)
-    f = np.asarray(f, dtype=float)
-    lb = np.asarray(lb, dtype=float)
-    ub = np.asarray(ub, dtype=float)
-    if H.shape != (n, n):
-        raise ValueError(f"H must be (n,n); got {H.shape}")
-    if f.shape != (n,):
-        raise ValueError(f"f must be (n,); got {f.shape}")
-    if lb.shape != (n,) or ub.shape != (n,):
-        raise ValueError("lb and ub must be length-n vectors.")
-    if Aeq is not None:
-        Aeq = np.asarray(Aeq, dtype=float)
-        beq = np.asarray(beq, dtype=float)
-        if Aeq.shape[1] != n:
-            raise ValueError(f"Aeq must have n columns; got {Aeq.shape}")
-        if beq.shape != (Aeq.shape[0],):
-            raise ValueError(f"beq must match Aeq rows; got beq {beq.shape}, Aeq {Aeq.shape}")
 
-    # ---- STABILITY
-    H = 0.5 * (H + H.T)
-
-    # --- Optimization
     model = gp.Model()
     if not verbose:
         model.Params.OutputFlag = 0
-        
-    # should we include? 
-    # model.Params.NumericFocus = 1
-    # model.Params.OptimalityTol = 1e-8
-    # model.Params.BarConvTol = 1e-10
+
 
     x = model.addMVar(n, lb=lb, ub=ub, name="alpha")
     obj = 0.5 * (x @ H @ x) + f @ x

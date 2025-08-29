@@ -72,7 +72,6 @@ class SVM(BaseEstimator):
         K = k(X, X)  # (n,n)
         Y = y_mapped
         H = (Y[:, None] * Y[None, :]) * K
-        H = 0.5 * (H + H.T)  # symmetrize
 
         n = X.shape[0]
         f = -np.ones(n, dtype=float)

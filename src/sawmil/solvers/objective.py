@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import logging
 
-log = logging.getLogger("Objective")
+log = logging.getLogger("solvers.objective")
 
 
 @dataclass

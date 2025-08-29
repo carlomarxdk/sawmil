@@ -90,7 +90,6 @@ class sMIL(NSK):
 
         # 3) QP pieces
         H = (Y[:, None] * Y[None, :]) * K
-        H = 0.5 * (H + H.T)
         n = len(train_bags)
         f = -np.ones(n, dtype=float)
         sizes = np.array([b.n for b in train_bags[S_n:]], dtype=float)

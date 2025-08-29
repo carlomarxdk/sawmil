@@ -6,7 +6,7 @@ import numpy.typing as npt
 from .objective import Objective
 import logging
 
-log = logging.getLogger("quadprog_osqp")
+log = logging.getLogger("solvers._osqp")
 
 
 def quadprog_osqp(
@@ -17,7 +17,6 @@ def quadprog_osqp(
     lb: npt.NDArray[np.float64],
     ub: npt.NDArray[np.float64],
     verbose: bool = False,
-    ridge: float = 0.0,  # add for stability if needed
 ) -> Tuple[npt.NDArray[np.float64], "Objective"]:
     """Solve min 0.5 x^T H x + f^T x  s.t.  Aeq x = beq,  lb <= x <= ub using OSQP."""
     # Lazy, guarded imports so the module can be imported without OSQP installed.
@@ -30,38 +29,9 @@ def quadprog_osqp(
     except Exception as exc:  # pragma: no cover
         raise ImportError("osqp is required for solver='osqp'") from exc
 
-    # ---- shape & sanity checks ----
-    H = np.asarray(H, dtype=float)
-    f = np.asarray(f, dtype=float).ravel()
+
     n = H.shape[0]
-    if H.shape != (n, n):
-        raise ValueError(f"H must be (n,n); got {H.shape}")
-    if f.shape != (n,):
-        raise ValueError(f"f must be shape (n,); got {f.shape}")
-
-    lb = np.asarray(lb, dtype=float).ravel()
-    ub = np.asarray(ub, dtype=float).ravel()
-    if lb.shape != (n,) or ub.shape != (n,):
-        raise ValueError("lb and ub must be shape (n,)")
-    if np.any(lb > ub):
-        raise ValueError("Each component must satisfy lb[i] <= ub[i].")
-
-    if (Aeq is None) ^ (beq is None):
-        raise ValueError("Provide both Aeq and beq, or neither.")
-    if Aeq is not None:
-        Aeq = np.atleast_2d(np.asarray(Aeq, dtype=float))
-        beq = np.asarray(beq, dtype=float).ravel()
-        if Aeq.shape[1] != n:
-            raise ValueError(f"Aeq must have {n} columns; got {Aeq.shape[1]}")
-        if beq.shape != (Aeq.shape[0],):
-            raise ValueError("beq shape must match number of Aeq rows.")
-
-    # ---- OSQP data ----
-    # Symmetrize and (optionally) add tiny ridge for numerical stability
-    P = 0.5 * (H + H.T)
-    if ridge > 0.0:
-        P = P + ridge * np.eye(n)
-    P = sp.csc_matrix(P)
+    P = sp.csc_matrix(H)
     q = f
 
     blocks = []

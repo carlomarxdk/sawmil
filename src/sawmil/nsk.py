@@ -127,7 +127,6 @@ class NSK(SVM):
 
         # Build dual QP (same as SVM)
         H = (Y[:, None] * Y[None, :]) * K
-        H = 0.5 * (H + H.T)                   # symmetrize for safety
         n = len(bag_list)
         f = -np.ones(n, dtype=float)
         Aeq = Y.reshape(1, -1)

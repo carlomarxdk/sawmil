@@ -128,7 +128,7 @@ print("Train acc:", clf.score(ds, np.array([b.y for b in ds.bags])))
 ### 3. Fit sMIL Model with Linear Kernel
 
 ```python
-from src.sawmil.smil import sMIL
+from sawmil.smil import sMIL
 
 k = get_kernel("linear", normalizer="none") # base (single-instance kernel)
 bag_k  = make_bag_kernel(Linear(), normalizer="none", use_intra_labels=False)
@@ -142,8 +142,8 @@ See more examples in the [`example.ipynb`](https://github.com/carlomarxdk/sawmil
 ### 4. Fit sAwMIL with Combined Kernels
 
 ```python
-from src.sawmil.kernels import Product, Polynomial, Linear, RBF, Sum, Scale
-from src.sawmil.sawmil import sAwMIL
+from sawmil.kernels import Product, Polynomial, Linear, RBF, Sum, Scale
+from sawmil.sawmil import sAwMIL
 
 k = Sum(Linear(), 
         Scale(0.5, 
