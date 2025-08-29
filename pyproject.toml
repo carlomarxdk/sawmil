@@ -3,7 +3,7 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "sawmil"                              # PyPI name (check availability)
+name = "sawmil"                            
 dynamic = ["version"]
 description = "Sparse Multiple-Instance Learning: SVM, NSK, sMIL and sAwMIL."
 readme = { file = "README.md", content-type = "text/markdown" }
@@ -19,7 +19,6 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Typing :: Typed",
@@ -43,9 +42,16 @@ Documentation = "https://github.com/carlomarxdk/sawmil#readme"
 [tool.hatch.version]
 path = "src/sawmil/__init__.py"
 
+# (optional top-level include/exclude; fine to keep)
 [tool.hatch.build]
 include = ["src/sawmil/**", "README.md", "LICENSE"]
 exclude = ["tests/**"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sawmil"]  # crucial for src/ layout
+
+[tool.hatch.build.targets.sdist]
+include = ["src/sawmil", "README.md", "LICENSE"]
 
 [tool.ruff]
 line-length = 100
