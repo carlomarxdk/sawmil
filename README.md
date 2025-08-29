@@ -11,17 +11,17 @@ Inspired by the outdated [misvm](https://github.com/garydoranjr/misvm) package.
 
 **Note**: This is an alpha version.
 
-## Models
+## Implemented Models
 
-#### Normalized Set Kernels (`NSK`)
+### Normalized Set Kernels (`NSK`)
 
 > Gärtner, Thomas, Peter A. Flach, Adam Kowalczyk, and Alex J. Smola. [Multi-instance kernels](https://dl.acm.org/doi/10.5555/645531.656014). Proceedings of the 19th International Conference on Machine Learning (2002).
 
-#### Sparse MIL (`sMIL`)
+### Sparse MIL (`sMIL`)
 
 > Bunescu, Razvan C., and Raymond J. Mooney. [Multiple instance learning for sparse positive bags](https://dl.acm.org/doi/10.1145/1273496.1273510). Proceedings of the 24th International Conference on Machine Learning (2007).
 
-#### Sparse Aware MIL (`sAwMIL`)
+### Sparse Aware MIL (`sAwMIL`)
 
 Classifier used in [trilemma-of-truth](https://github.com/carlomarxdk/trilemma-of-truth):
 > Savcisens, Germans, and Tina Eliassi-Rad. [The Trilemma of Truth in Large Language Models](https://arxiv.org/abs/2506.23921). arXiv preprint arXiv:2506.23921 (2025).
@@ -42,7 +42,6 @@ python>=11.0 # recommended: >=12.3
 ```
 
 At this point, `sawmil` package works only with the [Gurobi](https://gurobi.com) optimizer. You need to obtain a academic/commercial license to use it. We plan to add implementations with other solvers.
-
 
 ## Quick start
 
@@ -103,17 +102,16 @@ print("Train acc:", clf.score(ds, np.array([1 if b.y > 0 else -1 for b in ds.bag
 
 See more examples in the [`example.ipynb`](https://github.com/carlomarxdk/sawmil/blob/main/example.ipynb) notebook.
 
-
 ## Citation
 
 If you use `sawmil` package in academic work, please cite:
 
-Savcisens, G. & Eliassi-Rad, T. *sAwMIL: Sparse Multiple-Instance Learning in Python* (2025).
+Savcisens, G. & Eliassi-Rad, T. *sAwMIL: Python package for Sparse Multiple-Instance Learning* (2025).
 
 ```bibtex
 @software{savcisens2025sawmil,
   author = {Savcisens, Germans and Eliassi-Rad, Tina},
-  title = {sawmil: Sparse Multiple-Instance Learning in Python},
+  title = {sAwMIL: Python package for Sparse Multiple-Instance Learning},
   year = {2025},
   doi = {10.5281/zenodo.16990499},
   url = {https://github.com/carlomarxdk/sawmil}
