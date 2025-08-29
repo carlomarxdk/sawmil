@@ -2,6 +2,7 @@
 ![Python versions](https://img.shields.io/pypi/pyversions/sawmil.svg)
 ![Wheel](https://img.shields.io/pypi/wheel/sawmil.svg)
 ![License](https://img.shields.io/pypi/l/sawmil.svg)
+[![DOI](https://zenodo.org/badge/1046623935.svg)](https://doi.org/10.5281/zenodo.16990499)
 
 # Sparse Multiple-Instance Learning in Python
 
