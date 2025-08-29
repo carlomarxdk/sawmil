@@ -5,7 +5,7 @@
 [![DOI](https://zenodo.org/badge/1046623935.svg)](https://doi.org/10.5281/zenodo.16990499)
 
 # Sparse Multiple-Instance Learning in Python
-> **Warning**
+> [!Warning]
 >
 > It is an **alpha** version of the package.
 
