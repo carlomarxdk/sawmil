@@ -92,6 +92,8 @@ print("Train acc:", clf.score(ds, np.array([b.y for b in ds.bags])))
 ### 3. Fit sMIL Model with Linear Kernel
 
 ```python
+from src.sawmil.smil import sMIL
+
 k = get_kernel("linear", normalizer="none") # base (single-instance kernel)
 bag_k  = make_bag_kernel(Linear(), normalizer="none", use_intra_labels=False)
 clf = sMIL(C=0.1, bag_kernel=bag_k, scale_C=True, tol=1e-6, verbose=False).fit(ds, None)
@@ -100,3 +102,22 @@ print("Train acc:", clf.score(ds, np.array([1 if b.y > 0 else -1 for b in ds.bag
 ```
 
 See more examples in the [`example.ipynb`](https://github.com/carlomarxdk/sawmil/blob/main/example.ipynb) notebook.
+
+
+## Citation
+
+If you use `sawmil` package in academic work, please cite:
+
+Savcisens, G. & Eliassi-Rad, T. *sAwMIL: Sparse Multiple-Instance Learning in Python* (2025).
+
+```bibtex
+@software{savcisens2025sawmil,
+  author = {Savcisens, Germans and Eliassi-Rad, Tina},
+  title = {sawmil: Sparse Multiple-Instance Learning in Python},
+  year = {2025},
+  doi = {10.5281/zenodo.16990499},
+  url = {https://github.com/carlomarxdk/sawmil}
+}
+```
+
+If you want to reference a specific version of the package, find the [correct DOI here](https://doi.org/10.5281/zenodo.16990499).

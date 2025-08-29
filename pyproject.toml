@@ -21,6 +21,8 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Scientific/Engineering :: Mathematics",
   "Typing :: Typed",
 ]
 
@@ -35,9 +37,11 @@ dev = ["pytest>=7", "pytest-cov", "build", "twine", "ruff", "mypy"]
 
 [project.urls]
 Homepage = "https://github.com/carlomarxdk/sawmil"
-Repository = "https://github.com/carlomarxdk/sawmil"
 Issues = "https://github.com/carlomarxdk/sawmil/issues"
-Documentation = "https://github.com/carlomarxdk/sawmil#readme"
+Paper = "https://arxiv.org/abs/2506.23921"
+DOI = "https://doi.org/10.5281/zenodo.16990499"
+Citation = "https://github.com/carlomarxdk/sawmil/blob/main/CITATION.cff"
+
 
 [tool.hatch.version]
 path = "src/sawmil/__init__.py"

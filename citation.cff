@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "sawmil: Python package for Sparse Multiple-Instance Learning"
+version: "0.1.2"
+doi: "10.5281/zenodo.16990499"
+date-released: "2025-08-29"
+repository-code: "https://github.com/carlomarxdk/sawmil"
+url: "https://pypi.org/project/sawmil/"
+license: "MIT"
+authors:
+  - family-names: "Savcisens"
+    given-names: "Germans"
+    orcid: "https://orcid.org/0000-0002-5811-3230" 
+  - family-names: "Eliassi-Rad"
+    given-names: "Tina"
+    orcid: "https://orcid.org/0000-0002-1892-1188"
+keywords:
+  - SVM
+  - Multiple-Instance Learning
+  - MIL
+  - Gurobi
+  - sMIL
+  - sAwMIL
+
+preferred-citation:
+  type: article
+  title: "The Trilemma of Truth in Large Language Models"
+  authors:
+    - family-names: "Savcisens"
+      given-names: "Germans"
+      orcid: "https://orcid.org/0000-0002-5811-3230" 
+    - family-names: "Eliassi-Rad"
+      given-names: "Tina"
+      orcid: "https://orcid.org/0000-0002-1892-1188"
+  year: 2025
+  doi: "10.48550/arXiv.2506.23921"
+  url: "https://arxiv.org/abs/2506.23921"
