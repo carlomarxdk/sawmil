@@ -5,7 +5,10 @@ import numpy as np
 from numpy.random import Generator
 from dataclasses import dataclass
 
-from sawmil.bag import Bag, BagDataset  # adjust import to your paths
+try:
+    from src.sawmil.bag import Bag, BagDataset  # adjust import to your paths
+except ImportError:
+    from sawmil.bag import Bag, BagDataset  # fallback import
 
 @dataclass
 class GaussianComp:
