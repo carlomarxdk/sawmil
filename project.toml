@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sawmil"                              # PyPI name (check availability)
+dynamic = ["version"]
+description = "Sparse Multiple-Instance Learning: SVM, NSK, sMIL and sAwMIL."
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Germans Savcisens" }, {name = "Tina Eliassi-Rad"}]
+keywords = ["svm", "multiple-instance-learning", "MIL", "kernels", "bag", "sparse", "sawmil"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Typing :: Typed",
+]
+
+dependencies = [
+  "numpy>=1.22",
+  "scikit-learn>=1.2",
+  "gurobipy>=12.0.3"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "pytest-cov", "build", "twine", "ruff", "mypy"]
+
+[project.urls]
+Homepage = "https://github.com/carlomarxdk/sawmil"
+Repository = "https://github.com/carlomarxdk/sawmil"
+Issues = "https://github.com/carlomarxdk/sawmil/issues"
+Documentation = "https://github.com/carlomarxdk/sawmil#readme"
+
+[tool.hatch.version]
+path = "src/sawmil/__init__.py"
+
+[tool.hatch.build]
+include = ["src/sawmil/**", "README.md", "LICENSE"]
+exclude = ["tests/**"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
