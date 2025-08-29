@@ -1,0 +1,65 @@
+{
+  "title": "sAwMIL: Python package for Multiple-Instance Support Vector Machines",
+  "upload_type": "software",
+  "access_right": "open",
+  "language": "eng",
+  "creators": [
+    {
+      "name": "Savcisens, Germans",
+      "affiliation": "Northeastern University",
+      "orcid": "0000-0002-5811-3230"
+    },
+    {
+      "name": "Eliassi-Rad, Tina",
+      "affiliation": "Northeastern University; Santa Fe Institute",
+      "orcid": "0000-0002-1892-1188"
+    }
+  ],
+  "license": "MIT",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/carlomarxdk/sawmil",
+      "relation": "isAlternateIdentifier",
+      "scheme": "url"
+    },
+    {
+     "identifier":"https://github.com/garydoranjr/misvm",
+     "relation": "isDerivedFrom",
+     "scheme": "url"
+    },
+    {
+      "identifier": "10.5281/zenodo.15779092",
+      "relation": "isSupplementTo",
+      "scheme": "doi"
+    },
+    {
+     "identifier":"https://github.com/carlomarxdk/trilemma-of-truth",
+     "relation": "isSupplementTo",
+     "scheme": "url"
+    },
+    {
+      "identifier": "10.48550/arXiv.2506.23921",
+      "relation": "isSupplementTo",
+      "scheme": "doi"
+    }
+  ],
+    "keywords": [
+    "EuroSciVoc: Machine learning",
+    "EuroSciVoc: Mathematical logic",
+    "EuroSciVoc: Artificial intelligence",
+    "EuroSciVoc: Computer and information sciences",
+    "EuroSciVoc: Social sciences",
+    "EuroSciVoc: Computational science",
+    "GEMET: Interpretation method",
+    "MeSH: Supervised Machine Learning",
+    "MeSH: Machine Learning/classification",
+    "MeSH: Supervised Machine Learning/classification",
+    "MeSH: Artificial Intelligence",
+    "MeSH: Algorithms",
+    "Python",
+    "Multiple-instance learning",
+    "SVM",
+    "sAwMIL",
+    "Kernel methods"
+  ]
+}
