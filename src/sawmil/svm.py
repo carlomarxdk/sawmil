@@ -5,15 +5,16 @@ import numpy as np
 import numpy.typing as npt
 
 from .kernels import get_kernel, BaseKernel, KernelType, Linear
-from .quadprog import quadprog_gurobi
+from .quadprog import quadprog
 
 class SVM(BaseEstimator):
-    """Support Vector Machine (dual QP w/ Gurobi). Binary only."""
+    """Support Vector Machine (dual QP). Binary only."""
 
     def __init__(
         self,
         C: float = 1.0,
         kernel: KernelType = "linear",
+        solver: str = "gurobi",
         gamma: Optional[float] = None,
         degree: int = 3,
         coef0: float = 0.0,
@@ -27,6 +28,7 @@ class SVM(BaseEstimator):
         self.coef0 = coef0
         self.tol = tol
         self.verbose = verbose
+        self.solver = solver
 
         # Fitted attributes
         self._k: Optional[BaseKernel] = None # the fitted kernel instance
@@ -80,7 +82,7 @@ class SVM(BaseEstimator):
         ub = np.full(n, float(self.C), dtype=float)
 
         # Solve dual
-        alpha, _ = quadprog_gurobi(H, f, Aeq, beq, lb, ub, verbose=self.verbose)
+        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose, solver=self.solver)
         self.alpha_ = alpha
 
         # Support vectors
@@ -121,6 +123,7 @@ class SVM(BaseEstimator):
             return pred_sign
         y0, y1 = self.classes_
         return np.where(pred_sign < 0, y0, y1)
+    
 
     def score(self, X: npt.NDArray[np.float64], y: npt.NDArray[np.float64]) -> float:
         y = np.asarray(y).ravel()

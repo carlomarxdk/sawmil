@@ -8,7 +8,7 @@ from .nsk import NSK
 from .bag import Bag, BagDataset
 from .bag_kernels import WeightedMeanBagKernel
 from .kernels import Linear
-from .quadprog import quadprog_gurobi
+from .quadprog import quadprog
 
 
 class sMIL(NSK):
@@ -110,7 +110,7 @@ class sMIL(NSK):
         ub = np.concatenate([np.full(S_n, iC), np.full(B_p, bC)]).astype(float)
 
         # 4) solve
-        alpha, _ = quadprog_gurobi(H, f, Aeq, beq, lb, ub, verbose=self.verbose)
+        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose, solver=self.solver)
         self.alpha_ = alpha
 
         # 5) SVs + intercept (dual)

@@ -29,10 +29,12 @@ classifiers = [
 dependencies = [
   "numpy>=1.22",
   "scikit-learn>=1.2",
-  "gurobipy>=12.0.3"
 ]
 
 [project.optional-dependencies]
+gurobi = ["gurobipy>=12.0.3"]
+osqp   = ["osqp>=1.0.4", "scipy>=1.16.1"]
+full = ["gurobipy>=12.0.3", "osqp>=1.0.4", "scipy>=1.16.1"]
 dev = ["pytest>=7", "pytest-cov", "build", "twine", "ruff", "mypy"]
 
 [project.urls]
@@ -46,13 +48,12 @@ Citation = "https://github.com/carlomarxdk/sawmil/blob/main/CITATION.cff"
 [tool.hatch.version]
 path = "src/sawmil/__init__.py"
 
-# (optional top-level include/exclude; fine to keep)
 [tool.hatch.build]
 include = ["src/sawmil/**", "README.md", "LICENSE"]
 exclude = ["tests/**"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/sawmil"]  # crucial for src/ layout
+packages = ["src/sawmil"] 
 
 [tool.hatch.build.targets.sdist]
 include = ["src/sawmil", "README.md", "LICENSE"]

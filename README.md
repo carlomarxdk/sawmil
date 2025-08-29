@@ -5,6 +5,9 @@
 [![DOI](https://zenodo.org/badge/1046623935.svg)](https://doi.org/10.5281/zenodo.16990499)
 
 # Sparse Multiple-Instance Learning in Python
+> **Warning**
+>
+> It is an **alpha** version of the package.
 
 MIL models based on the Support Vector Machines (NSK, sMIL, sAwMIL).
 Inspired by the outdated [misvm](https://github.com/garydoranjr/misvm) package.
@@ -26,10 +29,50 @@ Inspired by the outdated [misvm](https://github.com/garydoranjr/misvm) package.
 Classifier used in [trilemma-of-truth](https://github.com/carlomarxdk/trilemma-of-truth):
 > Savcisens, Germans, and Tina Eliassi-Rad. [The Trilemma of Truth in Large Language Models](https://arxiv.org/abs/2506.23921). arXiv preprint arXiv:2506.23921 (2025).
 
+Here’s a tighter, clearer install section you can drop into your README.
+
+---
+
 ## Installation
+
+`sawmil` supports two QP backends: [Gurobi](https://gurobi.com) and [OSQP](https://osqp.org/).
+By default, the base package installs **without** any solver; pick one (or both) via extras.
+
+### Base package (no solver)
 
 ```bash
 pip install sawmil
+```
+
+### Option 1 — Gurobi backend
+
+> Gurobi is commercial software. You’ll need a valid license (academic or commercial), refer to the [official website](https://gurobi.com).
+
+```bash
+pip install "sawmil[gurobi]"
+# it installs numpy>=1.22 and scikit-learn>=1.7.0
+```
+
+### Option 2 — OSQP backend
+
+```bash
+pip install "sawmil[osqp]"
+# in additionl to the base packages, it installs osqp>=1.0.4 and scipy
+```
+
+### Option 3 — All supported solvers
+
+```bash
+pip install "sawmil[full]"
+```
+
+### Picking the solver in code
+
+```python
+from sawmil import SVM
+
+# solver= "osqp" (default is "gurobi")
+clf = SVM(C=1.0, kernel="rbf", gamma=0.5, solver="osqp").fit(X, y)
 ```
 
 ## Requirements
@@ -37,11 +80,7 @@ pip install sawmil
 ```bash
 numpy>=1.22
 scikit-learn>=1.7.0
-gurobipy>=12.0.3
-python>=3.11.0 # recommended: >=3.12.3
 ```
-
-At this point, `sawmil` package works only with the [Gurobi](https://gurobi.com) optimizer. You need to obtain a academic/commercial license to use it. We plan to add implementations with other solvers.
 
 ## Quick start
 

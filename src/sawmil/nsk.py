@@ -8,7 +8,7 @@ from .svm import SVM
 from .bag import Bag, BagDataset
 from .kernels import get_kernel, KernelType, Linear
 from .bag_kernels import BaseBagKernel, make_bag_kernel, WeightedMeanBagKernel
-from .quadprog import quadprog_gurobi
+from .quadprog import quadprog
 
 class NSK(SVM):
     """
@@ -24,6 +24,7 @@ class NSK(SVM):
         gamma: Optional[float] = None,
         degree: int = 3,
         coef0: float = 0.0,
+        solver: str = 'gurobi',
         *,
         # Bag kernel settings:
         # only used if one does not specify bag_kernel
@@ -39,7 +40,7 @@ class NSK(SVM):
     ):
         # parent SVM stores common attrs; kernel arg unused here
         super().__init__(C=C, kernel="linear", gamma=gamma, degree=degree,
-                         coef0=coef0, tol=tol, verbose=verbose)
+                         coef0=coef0, tol=tol, verbose=verbose, solver=solver)
         self.scale_C = scale_C
 
         # How to build the bag kernel (if not provided)
@@ -51,7 +52,7 @@ class NSK(SVM):
         self.bag_kernel: Optional[BaseBagKernel] = bag_kernel
 
         # Fitted state
-        self.bags_: Optional[List[Bag]] = None  # training bags (ordering matters)
+        self.bags_: Optional[List[Bag]] = None  # training bags (ordering does not matter)
 
     # ---------- helpers ----------
     @staticmethod
@@ -136,7 +137,7 @@ class NSK(SVM):
         ub = np.full(n, C_eff, dtype=float)
 
         # Solve (reuse your quadprog function from SVM)
-        alpha, _ = quadprog_gurobi(H, f, Aeq, beq, lb, ub, verbose=self.verbose)
+        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose, solver=self.solver)
         self.alpha_ = alpha
 
         # Identify support “vectors” (bags)
