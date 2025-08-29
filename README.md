@@ -19,3 +19,5 @@ from sawmil.svm import SVM
 clf = SVM(kernel="linear")
 clf.fit(X, y)
 ```
+
+See `example.ipynb`.
