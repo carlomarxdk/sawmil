@@ -6,7 +6,7 @@ __all__ = [
     "Bag", "BagDataset",
 ]
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 
 from .svm import SVM
 from .nsk import NSK

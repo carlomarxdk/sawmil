@@ -42,7 +42,7 @@ Homepage = "https://github.com/carlomarxdk/sawmil"
 Issues = "https://github.com/carlomarxdk/sawmil/issues"
 Paper = "https://arxiv.org/abs/2506.23921"
 DOI = "https://doi.org/10.5281/zenodo.16990499"
-Citation = "https://github.com/carlomarxdk/sawmil/blob/main/CITATION.cff"
+Citation = "https://github.com/carlomarxdk/sawmil/blob/main/citation.cff"
 
 
 [tool.hatch.version]

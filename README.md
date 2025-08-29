@@ -29,8 +29,6 @@ Inspired by the outdated [misvm](https://github.com/garydoranjr/misvm) package.
 Classifier used in [trilemma-of-truth](https://github.com/carlomarxdk/trilemma-of-truth):
 > Savcisens, Germans, and Tina Eliassi-Rad. [The Trilemma of Truth in Large Language Models](https://arxiv.org/abs/2506.23921). arXiv preprint arXiv:2506.23921 (2025).
 
-Here’s a tighter, clearer install section you can drop into your README.
-
 ---
 
 ## Installation
@@ -140,6 +138,22 @@ print("Train acc:", clf.score(ds, np.array([1 if b.y > 0 else -1 for b in ds.bag
 ```
 
 See more examples in the [`example.ipynb`](https://github.com/carlomarxdk/sawmil/blob/main/example.ipynb) notebook.
+
+### 4. Fit sAwMIL with Combined Kernels
+
+```python
+from src.sawmil.kernels import Product, Polynomial, Linear, RBF, Sum, Scale
+from src.sawmil.sawmil import sAwMIL
+
+k = Sum(Linear(), 
+        Scale(0.5, 
+              Product(Polynomial(degree=2), RBF(gamma=1.0))))
+
+clf = sAwMIL(C=0.1, base_kernel=k,
+             solver="gurobi", eta=0.95) # here eta is high, since all items in the bag are relevant
+clf.fit(ds)
+print("Train acc:", clf.score(ds, np.array([b.y for b in ds.bags])))
+```
 
 ## Citation
 
