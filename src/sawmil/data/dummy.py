@@ -67,11 +67,13 @@ def generate_dummy_bags(
     outlier_scale: float = 10.0,
     random_state: int = 0,
 ) -> BagDataset:
-    """
+    """Generate a synthetic MIL dataset with mixed Gaussian components.
+
     Returns:
-        BagDataset with:
-          - positive bags (y=1) mixing pos-like instances (intra=1) and distractors (intra=0),
-          - negative bags (y=0) with optional pos-like contamination (still intra defaults to ones in your Bag, but y=0).
+        BagDataset:
+            - Positive bags (y=1) mix pos-like instances (intra=1) and distractors (intra=0).
+            - Negative bags (y=0) may include a small fraction of pos-like contamination; intra
+              labels default to ones in Bag, but the bag label remains 0.
     """
     rng = np.random.default_rng(random_state)
     assert inst_per_bag[0] >= 1 and inst_per_bag[1] >= inst_per_bag[0]
