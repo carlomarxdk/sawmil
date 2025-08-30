@@ -5,15 +5,19 @@
 ![Wheel](https://img.shields.io/pypi/wheel/sawmil.svg)
 ![License](https://img.shields.io/pypi/l/sawmil.svg)
 [![DOI](https://zenodo.org/badge/1046623935.svg)](https://doi.org/10.5281/zenodo.16990499)
+[![Docs](https://img.shields.io/badge/docs-latest-purple?logo=mkdocs)](https://carlomarxdk.github.io/sawmil/)
+
 
 > [!Warning]
 >
-> It is an **alpha** version of the package.
+> Note: It is an **alpha** version of the package.  This is an alpha version (see [Documentation](https://carlomarxdk.github.io/sawmil/)).
 
 MIL models based on the Support Vector Machines (NSK, sMIL, sAwMIL).
 Inspired by the outdated [misvm](https://github.com/garydoranjr/misvm) package.
 
-**Note**: This is an alpha version.
+## Documentation
+
+Refer to the [Initial Documentation](https://carlomarxdk.github.io/sawmil/).
 
 ## Implemented Models
 
