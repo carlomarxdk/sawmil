@@ -2,16 +2,22 @@ site_name: sAwMIL
 site_url: https://carlomarxdk.github.io/sawmil
 repo_url: https://github.com/carlomarxdk/sawmil
 repo_name: carlomarxdk/sawmil
+edit_uri: edit/main/docs/
 
 theme:
   name: material
   features:
     - navigation.sections
     - navigation.instant
+    - navigation.top
     - content.tabs.link
+    - content.code.copy
+    - content.code.annotate
     - toc.integrate
   palette:
     - scheme: default
+  icon:
+    repo: fontawesome/brands/github
 
 markdown_extensions:
   - admonition
@@ -26,26 +32,28 @@ markdown_extensions:
 
 plugins:
   - search
+  - autorefs
   - mkdocstrings:
       handlers:
         python:
+          # Make mkdocstrings import from your repo’s src/ without installing
+          paths: [src]
           options:
             show_source: true
-            docstring_style: google
+            docstring_style: google        # or "numpy" if you standardize on that
             merge_init_into_class: true
             separate_signature: true
             show_signature_annotations: true
   - mkdocs-jupyter:
-      execute: false          # don't re-run during build (safer/faster)
-      include_source: true    # adds a “Download .ipynb” link
+      execute: false
+      include_source: true
       ignore_h1_titles: true
-  # Optional helpers for generating nav from files:
   - section-index
 
 nav:
   - Home: index.md
   - Getting started: getting-started.md
-  - Examples: 
+  - Examples:
     - Usage: examples.md
     - Jupyter Notebooks: notebooks/example.ipynb
   - API Reference: api.md
