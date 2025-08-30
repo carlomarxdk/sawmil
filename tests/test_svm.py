@@ -6,13 +6,16 @@ from sklearn.svm import SVC
 from sklearn.datasets import make_moons, make_blobs
 from sklearn.preprocessing import StandardScaler
 
-# Try the installed package first, fall back to src/ for local dev
+# Prefer installed package; fall back to local src/ when running from repo
 try:
     from sawmil.svm import SVM
+    from sawmil.kernels import Linear, RBF, Polynomial, Sigmoid
 except Exception:  # pragma: no cover
     from src.sawmil.svm import SVM  # type: ignore
+    from src.sawmil.kernels import Linear, RBF, Polynomial, Sigmoid  # type: ignore
 
-# ---------- Helpers ----------
+
+# ----------------- helpers -----------------
 
 def _standardize(X):
     return StandardScaler().fit_transform(X)
@@ -22,7 +25,7 @@ def _linear_toy(n_per=25, sep=2.0, noise=0.15, seed=0):
     X_pos = rng.normal(loc=[+sep, +sep], scale=noise, size=(n_per, 2))
     X_neg = rng.normal(loc=[-sep, -sep], scale=noise, size=(n_per, 2))
     X = np.vstack([X_pos, X_neg]).astype(float)
-    # Intentionally 0/1, not {-1,+1}
+    # Intentionally 0/1 labels (not {-1, +1})
     y = np.hstack([np.ones(n_per), np.zeros(n_per)])
     return _standardize(X), y
 
@@ -30,73 +33,58 @@ def _moons(n=120, noise=0.2, seed=2):
     X, y = make_moons(n_samples=n, noise=noise, random_state=seed)
     return _standardize(X), y
 
-def _mirror_sk_params(kernel, params):
-    out = dict(C=params.get("C", 1.0), kernel=kernel)
+def _make_kernel(name: str, params: dict):
+    name = name.lower()
+    if name == "linear":
+        return Linear()
+    if name == "rbf":
+        return RBF(gamma=params.get("gamma"))
+    if name == "poly" or name == "polynomial":
+        return Polynomial(
+            degree=params.get("degree", 3),
+            gamma=params.get("gamma"),
+            coef0=params.get("coef0", 0.0),
+        )
+    if name == "sigmoid":
+        return Sigmoid(
+            gamma=params.get("gamma"),
+            coef0=params.get("coef0", 0.0),
+        )
+    raise ValueError(f"Unknown kernel: {name}")
+
+def _mirror_sk_params(kernel_name, params):
+    """Build sklearn SVC params parallel to ours."""
+    out = dict(C=params.get("C", 1.0), kernel=kernel_name)
     for k in ("gamma", "degree", "coef0"):
-        if k in params: out[k] = params[k]
+        if k in params:
+            out[k] = params[k]
     return out
 
-def _has_solver_param(cls) -> bool:
-    try:
-        return "solver" in inspect.signature(cls.__init__).parameters
-    except Exception:
-        return False
 
-# ---------- Fixtures ----------
+# ----------------- solver fixture -----------------
 
-@pytest.fixture(scope="session")
-def gurobi_env():
-    """Create a quiet Gurobi Env once if Gurobi is available; else skip when requested."""
-    gp = pytest.importorskip("gurobipy", reason="Gurobi not installed")
-    env = gp.Env(empty=True)
-    env.setParam("OutputFlag", 0)
-    env.start()
-    return env
-
-@pytest.fixture(scope="function")
-def solver_request(request, gurobi_env):
-    """
-    Yields a dict with:
-      - name: "gurobi" or "osqp"
-      - extras: optional attributes to set on the estimator (e.g., _gurobi_env)
-    Skips the test if the requested solver isn't installed.
-    """
+@pytest.fixture(scope="function", params=["gurobi", "osqp"])
+def solver_name(request):
+    """Parametrize over solvers; skip if not installed."""
     name = request.param
-    extras = {}
     if name == "gurobi":
         pytest.importorskip("gurobipy", reason="Gurobi not installed")
-        extras["_gurobi_env"] = gurobi_env
-        # Optional Gurobi speed/consistency knobs:
-        extras["_gurobi_params"] = {"Method": 2, "Crossover": 0, "Threads": 1}
     elif name == "osqp":
         pytest.importorskip("osqp", reason="OSQP not installed")
-    else:
-        pytest.skip(f"Unknown solver requested: {name}")
-    return {"name": name, "extras": extras}
+        pytest.importorskip("scipy", reason="OSQP requires SciPy")
+    else:  # pragma: no cover
+        pytest.skip(f"Unknown solver {name}")
+    return name
 
-def _make_svm(kernel, params, solver_info):
-    """Instantiate SVM with the chosen solver, handling older/newer signatures."""
-    kwargs = dict(params)
-    # Prefer passing solver via __init__ if supported
-    if _has_solver_param(SVM):
-        kwargs["solver"] = solver_info["name"]
-    clf = SVM(kernel=kernel, tol=1e-6, verbose=False, **kwargs)
-    # If solver not in __init__, try setting attribute before fit()
-    if not _has_solver_param(SVM):
-        setattr(clf, "solver", solver_info["name"])
-    # Attach any backend extras (e.g., Gurobi Env)
-    for k, v in solver_info["extras"].items():
-        setattr(clf, k, v)
-    return clf
 
-# ---------- Tests ----------
+# ----------------- tests -----------------
 
-@pytest.mark.parametrize("solver_request", ["gurobi", "osqp"], indirect=True)
-def test_linear_kernel_matches_sklearn(solver_request):
+def test_linear_kernel_matches_sklearn(solver_name):
     X, y = _linear_toy(n_per=30, sep=2.0, noise=0.1, seed=1)
     C = 1.0
 
-    ours = _make_svm("linear", {"C": C}, solver_request).fit(X, y)
+    k = _make_kernel("linear", {})
+    ours = SVM(C=C, kernel=k, solver=solver_name, tol=1e-6, verbose=False).fit(X, y)
     sk   = SVC(C=C, kernel="linear").fit(X, y)
 
     # Accuracy parity on train
@@ -104,7 +92,7 @@ def test_linear_kernel_matches_sklearn(solver_request):
     acc_sk   = sk.score(X, y)
     assert abs(acc_ours - acc_sk) <= 1e-3
 
-    # Decision sign parity (allow sign flip)
+    # Decision sign parity (allow a global sign flip)
     df_ours = np.sign(ours.decision_function(X))
     df_sk   = np.sign(sk.decision_function(X))
     sign_match    = np.mean(df_ours == df_sk)
@@ -128,42 +116,48 @@ def test_linear_kernel_matches_sklearn(solver_request):
     scores = ours.decision_function(X)
     assert scores.shape == (X.shape[0],)
 
+
 @pytest.mark.parametrize(
-    "kernel,params", [
+    "kernel_name,params",
+    [
         ("rbf",  dict(C=1.0, gamma=0.7)),
         ("poly", dict(C=1.0, degree=3, gamma=0.5, coef0=1.0)),
-    ]
+        # You can add ("sigmoid", dict(C=1.0, gamma=0.7, coef0=0.0)) if desired
+    ],
 )
-@pytest.mark.parametrize("solver_request", ["gurobi", "osqp"], indirect=True)
-def test_kernels_moons_fast(kernel, params, solver_request):
+def test_kernels_moons_fast(kernel_name, params, solver_name):
     X, y = _moons(n=120, noise=0.2, seed=2)
 
-    ours = _make_svm(kernel, params, solver_request).fit(X, y)
-    sk   = SVC(**_mirror_sk_params(kernel, params)).fit(X, y)
+    k = _make_kernel(kernel_name, params)
+    ours = SVM(kernel=k, solver=solver_name, tol=1e-6, verbose=False, C=params.get("C", 1.0)).fit(X, y)
+
+    sk = SVC(**_mirror_sk_params(kernel_name, params)).fit(X, y)
 
     acc_ours = ours.score(X, y)
     acc_sk   = sk.score(X, y)
 
-    # Both should do well; allow a little slack vs sklearn
+    # Both should do well; allow some slack vs sklearn due to different solvers
     assert acc_ours >= 0.9
     assert acc_ours >= acc_sk - 0.06
 
-@pytest.mark.parametrize("solver_request", ["gurobi", "osqp"], indirect=True)
-def test_predict_and_score_interfaces(solver_request):
+
+def test_predict_and_score_interfaces(solver_name):
     X, y = make_blobs(n_samples=80, centers=2, random_state=3, cluster_std=1.1)
     X = _standardize(X)
 
-    clf = _make_svm("rbf", {"C": 0.5, "gamma": 0.6}, solver_request).fit(X, y)
-    yhat = clf.predict(X)
+    k = _make_kernel("rbf", dict(gamma=0.6))
+    clf = SVM(C=0.5, kernel=k, solver=solver_name, tol=1e-6).fit(X, y)
 
+    yhat = clf.predict(X)
     assert yhat.shape == y.shape
     assert 0.0 <= clf.score(X, y) <= 1.0
-    
-@pytest.mark.parametrize("solver_request", ["gurobi", "osqp"], indirect=True)
-def test_dual_feasibility_basic(solver_request):
+
+
+def test_dual_feasibility_basic(solver_name):
     X, y = _linear_toy(n_per=20, sep=1.8, noise=0.15, seed=4)
     C = 1.2
-    clf = _make_svm("linear", {"C": C}, solver_request).fit(X, y)
+    k = _make_kernel("linear", {})
+    clf = SVM(C=C, kernel=k, solver=solver_name, tol=1e-7).fit(X, y)
 
     alpha = clf.alpha_
     assert alpha is not None

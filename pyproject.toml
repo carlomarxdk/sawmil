@@ -36,7 +36,17 @@ gurobi = ["gurobipy>=12.0.3"]
 osqp   = ["osqp>=1.0.4", "scipy>=1.16.1"]
 full = ["gurobipy>=12.0.3", "osqp>=1.0.4", "scipy>=1.16.1"]
 dev = ["pytest>=7", "pytest-cov", "build", "twine", "ruff", "mypy"]
-
+docs = [
+  "mkdocs>=1.5",
+  "mkdocs-material>=9.5",
+  "mkdocstrings>=0.24",
+  "mkdocstrings-python>=1.10",
+  "mkdocs-gen-files>=0.5",
+  "mkdocs-literate-nav>=0.6",
+  "mkdocs-section-index>=0.3",
+  "ruff",
+  "mkdocs-jupyter>=0.24"   # if you want notebooks in docs
+]
 [project.urls]
 Homepage = "https://github.com/carlomarxdk/sawmil"
 Issues = "https://github.com/carlomarxdk/sawmil/issues"

@@ -20,36 +20,32 @@ class NSK(SVM):
         self,
         C: float = 1.0,
         # If bag_kernel is None, we'll build one from this instance-kernel spec:
-        base_kernel: KernelType = "linear",
-        gamma: Optional[float] = None,
-        degree: int = 3,
-        coef0: float = 0.0,
+        kernel: KernelType = "linear",
         solver: str = 'gurobi',
         *,
         # Bag kernel settings:
-        # only used if one does not specify bag_kernel
         normalizer: Literal["none", "average", "featurespace"] = "none",
         p: float = 1.0,
         use_intra_labels: bool = False,
         fast_linear: bool = True,
-        bag_kernel: Optional[BaseBagKernel] = None,
         # Solver / SVM settings:
         scale_C: bool = True,
-        tol: float = 1e-6,
+        tol: float = 1e-8,
         verbose: bool = False,
     ):
         # parent SVM stores common attrs; kernel arg unused here
-        super().__init__(C=C, kernel="linear", gamma=gamma, degree=degree,
-                         coef0=coef0, tol=tol, verbose=verbose, solver=solver)
+        super().__init__(C=C, kernel=kernel, tol=tol, verbose=verbose, solver=solver)
         self.scale_C = scale_C
 
         # How to build the bag kernel (if not provided)
-        self.base_kernel = base_kernel
+        self.kernel = kernel
+        # Bag Kernel
         self.normalizer = normalizer
         self.p = p
         self.use_intra_labels = use_intra_labels
         self.fast_linear = fast_linear
-        self.bag_kernel: Optional[BaseBagKernel] = bag_kernel
+        self.bag_kernel = make_bag_kernel(inst_kernel=self.kernel, normalizer=self.normalizer, p=self.p, use_intra_labels=self.use_intra_labels, fast_linear=self.fast_linear)
+
 
         # Fitted state
         self.bags_: Optional[List[Bag]] = None  # training bags (ordering does not matter)
@@ -234,8 +230,7 @@ class NSK(SVM):
     # Optional: make predict/score robust to passing BagDataset or raw arrays
     def predict(self, bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray]) -> npt.NDArray[np.float64]:
         scores = self.decision_function(bags)
-        # Map sign back to original class order: classes_[0] ↔ -1, classes_[1] ↔ +1
-        return np.where(scores >= 0.0, self.classes_[1], self.classes_[0])
+        return (scores >= 0.0).astype(float)
 
     def score(self, bags, y_true) -> float:
         y_pred = self.predict(bags)

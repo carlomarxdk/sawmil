@@ -32,6 +32,7 @@ class Bag:
 
     @property
     def d(self) -> int: return self.X.shape[1]
+    
 
     @property
     def mask(self) -> npt.NDArray[np.float64]:
@@ -170,3 +171,7 @@ class BagDataset:
     @property
     def num_neg_bags(self) -> int:
         return len(self.negative_bags())
+    
+    @property
+    def y(self) -> np.ndarray:
+        return np.asarray([b.y for b in self.bags], dtype=float)

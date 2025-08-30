@@ -4,22 +4,17 @@ from dataclasses import dataclass
 from typing import Optional, Sequence, List, Tuple
 import numpy as np
 import numpy.typing as npt
+from sklearn.base import BaseEstimator, ClassifierMixin
 
 from .bag import Bag, BagDataset
 from .smil import sMIL
 from .svm import SVM
-from .kernels import KernelType
+from .kernels import KernelType, Linear
 
 @dataclass
-class sAwMIL:
+class sAwMIL(BaseEstimator, ClassifierMixin):
     C: float = 1.0
-
-    # kernel parameters (used for BOTH stages unless you split later)
-    base_kernel: KernelType = "linear"
-    gamma: Optional[float] = None
-    degree: int = 3
-    coef0: float = 0.0
-
+    kernel: KernelType = "Linear"
     # bag-kernel options used inside sMIL (stage 1)
     normalizer: str = "none"   # recommend "none" for sMIL
     p: float = 1.0
@@ -28,7 +23,7 @@ class sAwMIL:
     # sMIL-specific scaling of C by block sizes
     smil_scale_C: bool = True  # <-- renamed; avoids duplicate field name
 
-    tol: float = 1e-6
+    tol: float = 1e-8
     verbose: bool = False
 
     # solver for the instance SVM in stage 2
@@ -106,10 +101,7 @@ class sAwMIL:
         # 2) sMIL (stage 1) — use its decision on singletons to rank instances
         smil = sMIL(
             C=self.C,
-            base_kernel=self.base_kernel,
-            gamma=self.gamma,
-            degree=self.degree,
-            coef0=self.coef0,
+            kernel=self.kernel,
             normalizer=self.normalizer,
             p=self.p,
             use_intra_labels=True,            # you said you want to enforce using intra labels
@@ -140,8 +132,7 @@ class sAwMIL:
         if X_pos.shape[0] == 0:
             X_sil = X_neg
             y_sil = -np.ones(X_neg.shape[0], dtype=float)
-            sil = SVM(C=self.C, kernel=self.base_kernel, solver=self.solver,
-                      gamma=self.gamma, degree=self.degree, coef0=self.coef0,
+            sil = SVM(C=self.C, kernel=self.kernel, solver=self.solver,
                       tol=self.tol, verbose=self.verbose)
             sil.fit(X_sil, y_sil)
             self.sil_ = sil
@@ -182,11 +173,8 @@ class sAwMIL:
         # 7) train instance SVM (stage 2) — pass solver here
         sil = SVM(
             C=self.C,
-            kernel=self.base_kernel,
-            solver=self.solver,            # <-- now used
-            gamma=self.gamma,
-            degree=self.degree,
-            coef0=self.coef0,
+            kernel=self.kernel,
+            solver=self.solver,          
             tol=self.tol,
             verbose=self.verbose,
         )

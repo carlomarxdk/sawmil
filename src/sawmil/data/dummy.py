@@ -6,7 +6,7 @@ from numpy.random import Generator
 from dataclasses import dataclass
 
 try:
-    from src.sawmil.bag import Bag, BagDataset  # adjust import to your paths
+    from ..bag import Bag, BagDataset  # adjust import to your paths
 except ImportError:
     from sawmil.bag import Bag, BagDataset  # fallback import
 
@@ -45,7 +45,7 @@ def _components_from_centers(rng: Generator, centers: Sequence[Sequence[float]],
 def _sample_comp(rng: Generator, comp: GaussianComp, n: int) -> np.ndarray:
     return rng.multivariate_normal(mean=comp.mu, cov=comp.cov, size=n)
 
-def make_complex_bags(
+def generate_dummy_bags(
     *,
     n_pos: int = 100,
     n_neg: int = 60,

@@ -1,0 +1,52 @@
+site_name: sAwMIL
+site_url: https://carlomarxdk.github.io/sawmil
+repo_url: https://github.com/carlomarxdk/sawmil
+repo_name: carlomarxdk/sawmil
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.instant
+    - content.tabs.link
+    - toc.integrate
+  palette:
+    - scheme: default
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - tables
+  - footnotes
+  - def_list
+  - attr_list
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            docstring_style: google
+            merge_init_into_class: true
+            separate_signature: true
+            show_signature_annotations: true
+  - mkdocs-jupyter:
+      execute: false          # don't re-run during build (safer/faster)
+      include_source: true    # adds a “Download .ipynb” link
+      ignore_h1_titles: true
+  # Optional helpers for generating nav from files:
+  - section-index
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Examples: 
+    - Usage: examples.md
+    - Jupyter Notebooks: notebooks/example.ipynb
+  - API Reference: api.md
+  - Citation: citation.md

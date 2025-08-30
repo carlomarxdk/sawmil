@@ -15,17 +15,11 @@ class SVM(BaseEstimator):
         C: float = 1.0,
         kernel: KernelType = "linear",
         solver: str = "gurobi",
-        gamma: Optional[float] = None,
-        degree: int = 3,
-        coef0: float = 0.0,
         tol: float = 1e-6,       # threshold to detect support vectors
         verbose: bool = False,
     ):
         self.C = C
         self.kernel = kernel
-        self.gamma = gamma
-        self.degree = degree
-        self.coef0 = coef0
         self.tol = tol
         self.verbose = verbose
         self.solver = solver
@@ -45,7 +39,7 @@ class SVM(BaseEstimator):
     def _get_kernel(self, X_train: npt.NDArray[np.float64]) -> BaseKernel:
         """Instantiate and fit kernel on training X for defaults like gamma."""
         if self._k is None:
-            self._k = get_kernel(self.kernel, gamma=self.gamma, degree=self.degree, coef0=self.coef0)
+            self._k = self.kernel
             self._k.fit(X_train)
         return self._k
 
@@ -117,12 +111,7 @@ class SVM(BaseEstimator):
 
     def predict(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         scores = self.decision_function(X)
-        pred_sign = np.where(scores >= 0, 1.0, -1.0)
-        if self.classes_ is None:
-            return pred_sign
-        y0, y1 = self.classes_
-        return np.where(pred_sign < 0, y0, y1)
-    
+        return (scores >= 0.0).astype(float)
 
     def score(self, X: npt.NDArray[np.float64], y: npt.NDArray[np.float64]) -> float:
         y = np.asarray(y).ravel()
