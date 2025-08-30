@@ -13,6 +13,7 @@ from .kernels import KernelType, Linear
 
 @dataclass
 class sAwMIL(BaseEstimator, ClassifierMixin):
+    '''Sparse Aware MIL (SVM)'''
     C: float = 1.0
     kernel: KernelType = "Linear"
     # bag-kernel options used inside sMIL (stage 1)
@@ -93,6 +94,7 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
         y: Optional[npt.NDArray[np.float64]] = None,
         intra_bag_labels: Optional[Sequence[np.ndarray]] = None,
     ) -> "sAwMIL":
+        '''Fit the model to the training data.'''
         # 1) coerce input
         blist = self._coerce_bags(bags, y, intra_bag_labels)
         if not blist:
@@ -187,6 +189,7 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
 
     # ---------- inference ----------
     def decision_function(self, bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray]) -> npt.NDArray[np.float64]:
+        '''Compute the decision function for the given bags.'''
         blist = self._coerce_bags(bags)
         if self.sil_ is None:
             raise RuntimeError("sAwMIL is not fitted.")
@@ -199,9 +202,11 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
         return scores
 
     def predict(self, bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray]) -> npt.NDArray[np.float64]:
+        '''Predict the labels for the given bags.'''
         return (self.decision_function(bags) >= 0.0).astype(float)
 
     def score(self, bags, y_true) -> float:
+        '''Compute the accuracy of the model on the given bags.'''
         y_pred = self.predict(bags)
         if isinstance(bags, BagDataset):
             y_true_arr = np.asarray([b.y for b in bags.bags], dtype=float)

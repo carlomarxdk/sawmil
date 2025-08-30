@@ -68,6 +68,7 @@ class sMIL(NSK):
 
     def fit(self, bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray],
             y: Optional[npt.NDArray[np.float64]] = None) -> "sMIL":
+        '''Fit the model to the training data.'''
         # 1) coerce inputs and build sMIL training set
         init_bags, _ = self._coerce_bags_and_labels(bags, y)
         train_bags, y_train, S_n, B_p = self._build_init_training(init_bags)

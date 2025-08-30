@@ -103,6 +103,7 @@ class NSK(SVM):
     # ---------- sklearn-style API ----------
     def fit(self, bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray],
             y: Optional[npt.NDArray[np.float64]] = None) -> "NSK":
+        '''Fit the model to the training data.'''
         bag_list, y_arr = self._coerce_bags_and_labels(bags, y)
         if len(bag_list) == 0:
             raise ValueError("No bags provided.")
@@ -202,6 +203,7 @@ class NSK(SVM):
             return mean  # fallback (shouldn't happen)
 
     def decision_function(self, bags):
+        '''Compute the decision function for the given bags.'''
         if self.bags_ is None or self.alpha_ is None or self.y_ is None or self.intercept_ is None:
             raise RuntimeError("Model is not fitted yet.")
 
@@ -227,12 +229,17 @@ class NSK(SVM):
         Ktest = bk(self.bags_, test_bags)  # (n_train, n_test)
         return ((self.alpha_ * self.y_) @ Ktest + self.intercept_).ravel()
 
-    # Optional: make predict/score robust to passing BagDataset or raw arrays
     def predict(self, bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray]) -> npt.NDArray[np.float64]:
+        """
+        Predict the labels for the given bags.
+        """
         scores = self.decision_function(bags)
         return (scores >= 0.0).astype(float)
 
     def score(self, bags, y_true) -> float:
+        """
+        Compute the accuracy of the model on the given bags.
+        """
         y_pred = self.predict(bags)
         y_true = np.asarray(y_true, dtype=float).ravel()
         return float((y_pred == y_true).mean())

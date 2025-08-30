@@ -1,4 +1,4 @@
-site_name: sAwMIL
+site_name: Python package for Multiple-Instance Support Vector Machines
 site_url: https://carlomarxdk.github.io/sawmil
 repo_url: https://github.com/carlomarxdk/sawmil
 repo_name: carlomarxdk/sawmil
@@ -44,6 +44,18 @@ plugins:
             merge_init_into_class: true
             separate_signature: true
             show_signature_annotations: true
+            allow_inspection: true
+            parameter_headings: false
+            show_root_heading: true      # hide the top "Module" heading
+            show_category_heading: false
+            show_root_members_full_path: false
+            show_symbol_type_toc: true
+            show_root_toc_entry: false
+
+
+
+
+
   - mkdocs-jupyter:
       execute: false
       include_source: true

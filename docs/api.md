@@ -13,15 +13,24 @@
 
 ::: sawmil.smil.sMIL
     options:
+      show_root_heading: true
       heading_level: 3
 
 ::: sawmil.sawmil.sAwMIL
     options:
+      show_root_heading: true
       heading_level: 3
 
 ## Solvers
-::: sawmil.solvers
-    show_root_heading: false
+::: sawmil.quadprog
+    options:
+      heading_level: 3
+
+::: sawmil.solvers._gurobi
+    options:
+      heading_level: 3
+
+::: sawmil.solvers._osqp
     options:
       heading_level: 3
 
@@ -36,7 +45,6 @@
 
 ## Bags
 ::: sawmil.bag
-    show_root_heading: false
     options:
       heading_level: 3
 

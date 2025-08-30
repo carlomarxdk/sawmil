@@ -28,15 +28,19 @@ class Bag:
                 raise ValueError("intra_bag_label length must match number of instances.")
 
     @property
-    def n(self) -> int: return self.X.shape[0]
+    def n(self) -> int: 
+        '''Number of instances in the bag.'''
+        return self.X.shape[0]
 
     @property
-    def d(self) -> int: return self.X.shape[1]
-    
+    def d(self) -> int: 
+        '''Number of features.'''
+        return self.X.shape[1]
+
 
     @property
     def mask(self) -> npt.NDArray[np.float64]:
-        """Safe 0/1 mask (clips negatives and >1)."""
+        """Intra-bag label mask."""
         return np.clip(self.intra_bag_label, 0.0, 1.0)
 
     def positives(self) -> npt.NDArray[np.int64]:
@@ -49,6 +53,7 @@ class Bag:
 
 @dataclass
 class BagDataset:
+    """A dataset of bags."""
     bags: List[Bag]
 
     @staticmethod
@@ -57,6 +62,7 @@ class BagDataset:
         y: Sequence[float],
         intra_bag_labels: Sequence[np.ndarray] | None = None
     ) -> "BagDataset":
+        '''Create a BagDataset from arrays.'''
         if intra_bag_labels is None:
             intra_bag_labels = [None] * len(bags)
         if len(bags) != len(y) or len(bags) != len(intra_bag_labels):
@@ -76,14 +82,16 @@ class BagDataset:
         return Xs, ys, masks
 
     def positive_bags(self) -> list[Bag]:
+        '''Returns all positive bags.'''
         return [b for b in self.bags if float(b.y) > 0.0]
 
     def negative_bags(self) -> list[Bag]:
+        '''Returns all negative bags.'''
         return [b for b in self.bags if float(b.y) <= 0.0]
 
     def positive_instances(self) -> tuple[np.ndarray, np.ndarray]:
         """
-        Instances from positive bags with intra_bag_label == 1.
+        Returns instances from positive bags with intra_bag_label == 1.
         Returns:
             X_pos: (N, d)
             bag_index: (N,) indices into self.bags (original positions)
@@ -103,7 +111,7 @@ class BagDataset:
 
     def negative_instances(self) -> tuple[np.ndarray, np.ndarray]:
         """
-        Instances from:
+        Returns instances from:
         - all negative bags (all instances),
         - plus from positive bags where intra_bag_label == 0.
         Returns:
@@ -150,28 +158,35 @@ class BagDataset:
 
     @property
     def num_pos_instances(self) -> int:
+        '''Returns the number of positive instances.'''
         return sum(b.n for b in self.positive_bags())
 
     @property
     def num_neg_instances(self) -> int:
+        '''Returns the number of negative instances.'''
         return sum(b.n for b in self.negative_bags())
 
     @property
     def num_instances(self) -> int:
+        '''Returns the total number of instances.'''
         return self.num_pos_instances + self.num_neg_instances
 
     @property
     def num_bags(self) -> int:
+        '''Returns the number of bags.'''
         return len(self.bags)
     
     @property
     def num_pos_bags(self) -> int:
+        '''Returns the number of positive bags.'''
         return len(self.positive_bags())
 
     @property
     def num_neg_bags(self) -> int:
+        '''Returns the number of negative bags.'''
         return len(self.negative_bags())
     
     @property
     def y(self) -> np.ndarray:
+        '''Returns all the bag labels.'''
         return np.asarray([b.y for b in self.bags], dtype=float)

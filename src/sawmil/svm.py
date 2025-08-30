@@ -9,7 +9,6 @@ from .quadprog import quadprog
 
 class SVM(BaseEstimator):
     """Support Vector Machine (dual QP). Binary only."""
-
     def __init__(
         self,
         C: float = 1.0,
@@ -44,6 +43,7 @@ class SVM(BaseEstimator):
         return self._k
 
     def fit(self, X: npt.NDArray[np.float64], y: npt.NDArray[np.float64]) -> "SVM":
+        '''Fit the model to the training data.'''
         X = np.asarray(X, dtype=float)
         y = np.asarray(y, dtype=float).ravel()
         if X.ndim != 2:
@@ -99,6 +99,7 @@ class SVM(BaseEstimator):
         return self
 
     def decision_function(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        '''Compute the decision function for the given bags.'''
         if self.X_ is None or self.alpha_ is None or self.y_ is None or self.intercept_ is None:
             raise RuntimeError("Model is not fitted yet.")
         X = np.asarray(X, dtype=float)
@@ -110,10 +111,12 @@ class SVM(BaseEstimator):
         return (self.alpha_ * self.y_) @ Ktest + self.intercept_
 
     def predict(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        '''Predict the labels for the given bags.'''
         scores = self.decision_function(X)
         return (scores >= 0.0).astype(float)
 
     def score(self, X: npt.NDArray[np.float64], y: npt.NDArray[np.float64]) -> float:
+        '''Compute the accuracy of the model on the given bags.'''
         y = np.asarray(y).ravel()
         yhat = self.predict(X)
         return float(np.mean(yhat == y))
