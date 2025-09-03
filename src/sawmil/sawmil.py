@@ -9,7 +9,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from .bag import Bag, BagDataset
 from .smil import sMIL
 from .svm import SVM
-from .kernels import KernelType, Linear
+from .kernels import KernelType
 
 @dataclass
 class sAwMIL(BaseEstimator, ClassifierMixin):

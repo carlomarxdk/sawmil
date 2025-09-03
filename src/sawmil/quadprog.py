@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 import numpy as np
 import numpy.typing as npt
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Mapping, Any
 from .solvers.objective import Objective
 
 try:
@@ -108,7 +108,8 @@ def quadprog(
     lb: npt.NDArray[np.float64], 
     ub: npt.NDArray[np.float64],
     solver: str = "gurobi", 
-    verbose: bool = False
+    verbose: bool = False,
+    solver_params: Optional[Mapping[str, Any]] = None,
 ) -> Union[Tuple[npt.NDArray[np.float64], "Objective"], None]:
     """
     Solve the quadratic program:
@@ -125,28 +126,34 @@ def quadprog(
         lb: (n,) lower bound vector, usually 0
         ub: (n,) upper bound vector, usually C
         verbose: If True, print solver logs
-
+    Extra:
+        solver_options: dict of backend-specific options. Examples:
+            - solver='gurobi': {'env': <gp.Env>, 'params': {'Method':2, 'Threads':1}}
+            - solver='osqp'  : {'setup': {...}, 'solve': {...}} or flat keys for setup
+            - solver='daqp'  : {'eps_abs': 1e-8, 'eps_rel': 1e-8, ...}
     Returns:
         α*: Optimal solution vector
         Objective: quadratic and linear parts of the optimum
     """
     H, f, Aeq, beq, lb, ub = _validate_and_stabilize(H, f, Aeq, beq, lb, ub)
+    params = dict(solver_params or {})
+
 
     if solver == "gurobi":
         if _qp_gurobi is None:
             raise ImportError("gurobi path selected but 'gurobipy' is not installed or usable. "
                               "Install with: pip install sawmil[gurobi]")
-        return _qp_gurobi(H, f, Aeq, beq, lb, ub, verbose=verbose)
+        return _qp_gurobi(H, f, Aeq, beq, lb, ub, verbose=verbose, **params)
 
     elif solver == "osqp":
         if _qp_osqp is None:
             raise ImportError("osqp path selected but 'osqp' is not installed. "
                               "Install with: pip install sawmil[osqp]")
-        return _qp_osqp(H, f, Aeq, beq, lb, ub, verbose=verbose)
+        return _qp_osqp(H, f, Aeq, beq, lb, ub, verbose=verbose, **params)
     elif solver == "daqp":
         if _qp_daqp is None:
             raise ImportError("daqp path selected but 'daqp' is not installed. "
                               "Install with: pip install sawmil[daqp]")
-        return _qp_daqp(H, f, Aeq, beq, lb, ub, verbose=verbose)
-    
+        return _qp_daqp(H, f, Aeq, beq, lb, ub, verbose=verbose, **params)
+
     raise ValueError(f"Unknown solver: {solver}")

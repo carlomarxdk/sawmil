@@ -1,6 +1,5 @@
 # solvers/_daqp.py
 import numpy as np
-import numpy.typing as npt
 
 def quadprog_daqp(H, f, Aeq, beq, lb, ub, verbose=False):
     import scipy.sparse as sp

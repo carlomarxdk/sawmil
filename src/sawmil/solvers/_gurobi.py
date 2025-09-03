@@ -1,7 +1,7 @@
 from __future__ import annotations
 import numpy as np
 from numpy import typing as npt
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
 from .objective import Objective
 import logging
 
@@ -16,6 +16,8 @@ def quadprog_gurobi(
     lb: npt.NDArray[np.float64],     
     ub: npt.NDArray[np.float64],      
     verbose: bool = False,
+     **params: Any,
+
 ) -> Tuple[npt.NDArray[np.float64], "Objective"]:
     """
     Solve the quadratic program:

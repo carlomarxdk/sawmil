@@ -1,18 +1,17 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Mapping, Any
 
 import numpy as np
 import numpy.typing as npt
-from sklearn.base import BaseEstimator
-
+from sklearn.base import BaseEstimator, ClassifierMixin
 
 from .kernels import BaseKernel, KernelType, Linear
 from .quadprog import quadprog
 
 
 @dataclass
-class SVM(BaseEstimator):
+class SVM(BaseEstimator, ClassifierMixin):
     """Support Vector Machine solved via the dual QP.
 
     Parameters
@@ -40,6 +39,8 @@ class SVM(BaseEstimator):
     solver: str = "gurobi"
     tol: float = 1e-6
     verbose: bool = False
+    solver_params: Optional[Mapping[str, Any]] = None
+
 
     # Fitted attributes -------------------------------------------------
     _k: Optional[BaseKernel] = field(default=None, init=False, repr=False)
@@ -52,6 +53,7 @@ class SVM(BaseEstimator):
     dual_coef_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
     intercept_: Optional[float] = field(default=None, init=False, repr=False)
     coef_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
+
 
     def _get_kernel(self, X_train: npt.NDArray[np.float64]) -> BaseKernel:
         """Instantiate and fit kernel on training X for defaults like gamma."""
@@ -93,7 +95,7 @@ class SVM(BaseEstimator):
         ub = np.full(n, float(self.C), dtype=float)
 
         # Solve dual
-        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose, solver=self.solver)
+        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose, solver=self.solver, solver_params=self.solver_params)
         self.alpha_ = alpha
 
         # Support vectors

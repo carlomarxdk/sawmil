@@ -1,6 +1,6 @@
 # sparse_mil/nsk.py
 from __future__ import annotations
-from typing import Optional, Sequence, List, Literal
+from typing import Optional, Sequence, List, Literal, Any, Mapping
 import numpy as np
 import numpy.typing as npt
 
@@ -32,6 +32,7 @@ class NSK(SVM):
         scale_C: bool = True,
         tol: float = 1e-8,
         verbose: bool = False,
+        solver_params: Optional[Mapping[str, Any]] = None
     ) -> "NSK":
         """
         Initialize the NSK model.
@@ -47,6 +48,7 @@ class NSK(SVM):
             scale_C: Whether to scale C (default: True).
             tol: Tolerance for stopping criteria (default: 1e-8).
             verbose: Whether to print verbose output (default: False).
+            solver_params: Additional parameters for the solver (default: None).
 
         Returns:
             NSK: Initialized NSK model.
@@ -63,6 +65,7 @@ class NSK(SVM):
         self.use_intra_labels = use_intra_labels
         self.fast_linear = fast_linear
         self.bag_kernel = make_bag_kernel(inst_kernel=self.kernel, normalizer=self.normalizer, p=self.p, use_intra_labels=self.use_intra_labels, fast_linear=self.fast_linear)
+        self.solver_params = dict(solver_params or {})
 
 
         # Fitted state
@@ -155,7 +158,7 @@ class NSK(SVM):
         ub = np.full(n, C_eff, dtype=float)
 
         # Solve (reuse your quadprog function from SVM)
-        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose, solver=self.solver)
+        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose, solver=self.solver, solver_params=self.solver_params)
         self.alpha_ = alpha
 
         # Identify support “vectors” (bags)

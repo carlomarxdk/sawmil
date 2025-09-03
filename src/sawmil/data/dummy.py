@@ -1,6 +1,6 @@
 # utils/make_complex_bags.py
 from __future__ import annotations
-from typing import Iterable, Sequence, Tuple
+from typing import Sequence, Tuple
 import numpy as np
 from numpy.random import Generator
 from dataclasses import dataclass
