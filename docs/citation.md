@@ -9,7 +9,7 @@ If you use `sawmil` package in academic work, please cite:
 Savcisens, G. & Eliassi-Rad, T. *sAwMIL: Python package for Sparse Multiple-Instance Learning* (2025).
 
 ```bibtex
-@software{savcisens2025sawmil,
+software{savcisens2025sawmil,
   author = {Savcisens, Germans and Eliassi-Rad, Tina},
   title = {sAwMIL: Python package for Sparse Multiple-Instance Learning},
   year = {2025},

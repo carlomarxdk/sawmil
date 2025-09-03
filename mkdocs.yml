@@ -71,5 +71,7 @@ nav:
   - Models:
       - SVM: models/svm.md
       - NSK: models/nsk.md
+      - sMIL: models/sMIL.md
+      - sAwMIL: models/sAwMIL.md
   - API Reference: api.md
   - Citation: citation.md

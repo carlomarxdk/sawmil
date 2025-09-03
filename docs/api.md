@@ -1,23 +1,5 @@
 # API Reference
 
-## Models
-::: sawmil.svm.SVM
-    options:
-      show_root_heading: true
-      heading_level: 3
-
-
-
-::: sawmil.smil.sMIL
-    options:
-      show_root_heading: true
-      heading_level: 3
-
-::: sawmil.sawmil.sAwMIL
-    options:
-      show_root_heading: true
-      heading_level: 3
-
 ## Solvers
 ::: sawmil.quadprog
     options:

@@ -32,7 +32,7 @@ class NSK(SVM):
         scale_C: bool = True,
         tol: float = 1e-8,
         verbose: bool = False,
-    ):
+    ) -> "NSK":
         """
         Initialize the NSK model.
         
@@ -49,7 +49,7 @@ class NSK(SVM):
             verbose: Whether to print verbose output (default: False).
 
         Returns:
-            None
+            NSK: Initialized NSK model.
         """
         # parent SVM stores common attrs; kernel arg unused here
         super().__init__(C=C, kernel=kernel, tol=tol, verbose=verbose, solver=solver)
@@ -121,7 +121,11 @@ class NSK(SVM):
     # ---------- sklearn-style API ----------
     def fit(self, bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray],
             y: Optional[npt.NDArray[np.float64]] = None) -> "NSK":
-        '''Fit the model to the training data.'''
+        '''
+        Fit the model to the training data.
+        Returns:
+            NSK: Fitted estimator.
+        '''
         bag_list, y_arr = self._coerce_bags_and_labels(bags, y)
         if len(bag_list) == 0:
             raise ValueError("No bags provided.")
@@ -220,7 +224,7 @@ class NSK(SVM):
         else:
             return mean  # fallback (shouldn't happen)
 
-    def decision_function(self, bags):
+    def decision_function(self, bags) -> npt.NDArray[np.float64]:
         '''Compute the decision function for the given bags.'''
         if self.bags_ is None or self.alpha_ is None or self.y_ is None or self.intercept_ is None:
             raise RuntimeError("Model is not fitted yet.")

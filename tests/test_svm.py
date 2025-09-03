@@ -1,5 +1,4 @@
 # tests/test_svm.py
-import inspect
 import numpy as np
 import pytest
 from sklearn.svm import SVC
