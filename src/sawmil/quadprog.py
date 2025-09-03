@@ -13,17 +13,11 @@ try:
     from .solvers._osqp import quadprog_osqp as _qp_osqp
 except Exception:  # OSQP not installed
     _qp_osqp = None
-
-log = logging.getLogger("quadprog")
-
-from .solvers.objective import Objective
-
+    
 try:
-    from .solvers._gurobi import quadprog_gurobi as _qp_gurobi
-except Exception:
-    _qp_gurobi = None
-
-from .solvers._osqp import quadprog_osqp as _qp_osqp  # your shim
+    from .solvers._daqp import quadprog_daqp as _qp_daqp
+except Exception:  # DAQP not installed
+    _qp_daqp = None
 
 log = logging.getLogger("quadprog")
 
@@ -144,11 +138,15 @@ def quadprog(
                               "Install with: pip install sawmil[gurobi]")
         return _qp_gurobi(H, f, Aeq, beq, lb, ub, verbose=verbose)
 
-    if solver == "osqp":
+    elif solver == "osqp":
         if _qp_osqp is None:
             raise ImportError("osqp path selected but 'osqp' is not installed. "
                               "Install with: pip install sawmil[osqp]")
         return _qp_osqp(H, f, Aeq, beq, lb, ub, verbose=verbose)
-    # if solver == "cvxopt":
-        # return quadprog_cvxopt(H, f, Aeq, beq, lb, ub, verbose=verbose)
+    elif solver == "daqp":
+        if _qp_daqp is None:
+            raise ImportError("daqp path selected but 'daqp' is not installed. "
+                              "Install with: pip install sawmil[daqp]")
+        return _qp_daqp(H, f, Aeq, beq, lb, ub, verbose=verbose)
+    
     raise ValueError(f"Unknown solver: {solver}")

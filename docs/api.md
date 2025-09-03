@@ -6,10 +6,7 @@
       show_root_heading: true
       heading_level: 3
 
-::: sawmil.nsk.NSK
-    options:
-      show_root_heading: true
-      heading_level: 3
+
 
 ::: sawmil.smil.sMIL
     options:

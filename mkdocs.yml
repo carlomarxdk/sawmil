@@ -22,7 +22,7 @@ theme:
 markdown_extensions:
   - admonition
   - toc:
-      permalink: true
+      permalink: false
   - tables
   - footnotes
   - def_list
@@ -33,6 +33,8 @@ markdown_extensions:
 plugins:
   - search
   - autorefs
+  - bibtex:
+      bib_file: "refs.bib"
   - mkdocstrings:
       handlers:
         python:
@@ -51,9 +53,7 @@ plugins:
             show_root_members_full_path: false
             show_symbol_type_toc: true
             show_root_toc_entry: false
-
-
-
+            docstring_section_style: list 
 
 
   - mkdocs-jupyter:
@@ -68,5 +68,8 @@ nav:
   - Examples:
     - Usage: examples.md
     - Jupyter Notebooks: notebooks/example.ipynb
+  - Models:
+      - SVM: models/svm.md
+      - NSK: models/nsk.md
   - API Reference: api.md
   - Citation: citation.md

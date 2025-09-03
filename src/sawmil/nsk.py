@@ -33,6 +33,24 @@ class NSK(SVM):
         tol: float = 1e-8,
         verbose: bool = False,
     ):
+        """
+        Initialize the NSK model.
+        
+        Args:
+            C: Regularization parameter.
+            kernel: Kernel type (default: "linear").
+            solver: Solver to use (default: "gurobi").
+            normalizer: Bag kernel normalization method (default: "none").
+            p: Parameter for bag kernel (default: 1.0).
+            use_intra_labels: Whether to use intra-bag labels (default: False).
+            fast_linear: Whether to use fast linear approximation (default: True).
+            scale_C: Whether to scale C (default: True).
+            tol: Tolerance for stopping criteria (default: 1e-8).
+            verbose: Whether to print verbose output (default: False).
+
+        Returns:
+            None
+        """
         # parent SVM stores common attrs; kernel arg unused here
         super().__init__(C=C, kernel=kernel, tol=tol, verbose=verbose, solver=solver)
         self.scale_C = scale_C

@@ -62,7 +62,25 @@ class BagDataset:
         y: Sequence[float],
         intra_bag_labels: Sequence[np.ndarray] | None = None
     ) -> "BagDataset":
-        '''Create a BagDataset from arrays.'''
+        """Create a :class:`BagDataset` from raw numpy arrays.
+
+        Parameters
+        ----------
+        bags:
+            Sequence of arrays where each element contains the instances of a
+            bag with shape ``(n_i, d)``.
+        y:
+            Bag-level labels corresponding to each element of ``bags``.
+        intra_bag_labels:
+            Optional sequence of 1D arrays with per-instance ``0/1`` flags. If
+            omitted, all instances in a bag are considered positive.
+
+        Returns
+        -------
+        BagDataset
+            Dataset composed of :class:`Bag` objects built from the provided
+            arrays.
+        """
         if intra_bag_labels is None:
             intra_bag_labels = [None] * len(bags)
         if len(bags) != len(y) or len(bags) != len(intra_bag_labels):

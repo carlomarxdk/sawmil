@@ -7,7 +7,7 @@ name = "sawmil"
 dynamic = ["version"]
 description = "Sparse Multiple-Instance Learning: SVM, NSK, sMIL and sAwMIL."
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = { file = "LICENSE" }
 authors = [{ name = "Germans Savcisens" }, {name = "Tina Eliassi-Rad"}]
 keywords = ["svm", "multiple-instance-learning", "MIL", "kernels", "bag", "sparse", "sawmil"]
@@ -17,6 +17,7 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Operating System :: OS Independent",
@@ -34,6 +35,7 @@ dependencies = [
 [project.optional-dependencies]
 gurobi = ["gurobipy>=12.0.3"]
 osqp   = ["osqp>=1.0.4", "scipy>=1.16.1"]
+daqp   = ["daqp>=0.5", "scipy>=1.16.1"]
 full = ["gurobipy>=12.0.3", "osqp>=1.0.4", "scipy>=1.16.1"]
 dev = ["pytest>=7", "pytest-cov", "build", "twine", "ruff", "mypy"]
 docs = [
@@ -45,7 +47,8 @@ docs = [
   "mkdocs-literate-nav>=0.6",
   "mkdocs-section-index>=0.3",
   "ruff",
-  "mkdocs-jupyter>=0.24"   # if you want notebooks in docs
+  "mkdocs-bibtex",
+  "mkdocs-jupyter>=0.24" 
 ]
 [project.urls]
 Homepage = "https://github.com/carlomarxdk/sawmil"

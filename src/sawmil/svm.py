@@ -1,39 +1,57 @@
 from __future__ import annotations
+from dataclasses import dataclass, field
 from typing import Optional
-from sklearn.base import BaseEstimator
+
 import numpy as np
 import numpy.typing as npt
+from sklearn.base import BaseEstimator
 
-from .kernels import get_kernel, BaseKernel, KernelType, Linear
+
+from .kernels import BaseKernel, KernelType, Linear
 from .quadprog import quadprog
 
-class SVM(BaseEstimator):
-    """Support Vector Machine (dual QP). Binary only."""
-    def __init__(
-        self,
-        C: float = 1.0,
-        kernel: KernelType = "linear",
-        solver: str = "gurobi",
-        tol: float = 1e-6,       # threshold to detect support vectors
-        verbose: bool = False,
-    ):
-        self.C = C
-        self.kernel = kernel
-        self.tol = tol
-        self.verbose = verbose
-        self.solver = solver
 
-        # Fitted attributes
-        self._k: Optional[BaseKernel] = None # the fitted kernel instance
-        self.X_: Optional[npt.NDArray[np.float64]] = None
-        self.y_: Optional[npt.NDArray[np.float64]] = None   # mapped to {-1,+1}
-        self.classes_: Optional[npt.NDArray[np.float64]] = None  # original labels
-        self.alpha_: Optional[npt.NDArray[np.float64]] = None
-        self.support_: Optional[npt.NDArray[np.int64]] = None
-        self.support_vectors_: Optional[npt.NDArray[np.float64]] = None
-        self.dual_coef_: Optional[npt.NDArray[np.float64]] = None  # shape (1, n_SV)
-        self.intercept_: Optional[float] = None
-        self.coef_: Optional[npt.NDArray[np.float64]] = None  # only for linear kernel
+@dataclass
+class SVM(BaseEstimator):
+    """Support Vector Machine solved via the dual QP.
+
+    Parameters
+    ----------
+    C:
+        Regularization parameter. Larger values try to fit the training data
+        more exactly at the cost of a smaller margin.
+    kernel:
+        Specification of the kernel to use.  This can be an instance of a
+        :class:`~sawmil.kernels.BaseKernel`, a callable, or a string understood
+        by :func:`~sawmil.kernels.get_kernel` (e.g. ``"linear"`` or
+        ``"rbf"``).
+    solver:
+        Name of the quadratic program solver backend.  ``"gurobi"`` and
+        ``"osqp"`` are supported.
+    tol:
+        Threshold used to decide whether a Lagrange multiplier is treated as
+        zero when identifying support vectors.
+    verbose:
+        If ``True`` the underlying solver may print progress information.
+    """
+
+    C: float = 1.0
+    kernel: KernelType = field(default_factory=Linear)
+    solver: str = "gurobi"
+    tol: float = 1e-6
+    verbose: bool = False
+
+    # Fitted attributes -------------------------------------------------
+    _k: Optional[BaseKernel] = field(default=None, init=False, repr=False)
+    X_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
+    y_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
+    classes_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
+    alpha_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
+    support_: Optional[npt.NDArray[np.int64]] = field(default=None, init=False, repr=False)
+    support_vectors_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
+    dual_coef_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
+    intercept_: Optional[float] = field(default=None, init=False, repr=False)
+    coef_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
 
     def _get_kernel(self, X_train: npt.NDArray[np.float64]) -> BaseKernel:
         """Instantiate and fit kernel on training X for defaults like gamma."""
