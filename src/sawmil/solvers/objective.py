@@ -14,4 +14,7 @@ class Objective:
 
     @property
     def objective(self) -> float:
+        """
+        Return the overall objective value.
+        """
         return self.quadratic + self.linear

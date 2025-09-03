@@ -20,15 +20,15 @@ def quadprog_gurobi(
 
 ) -> Tuple[npt.NDArray[np.float64], "Objective"]:
     """
-    Solve the quadratic program:
+    Solve the quadratic program using Gurobi:
 
         minimize   0.5 * αᵀ H α + fᵀ α
         subject to Aeq α = beq
                    lb ≤ α ≤ ub
 
     Args:
-        H: (n, n) quadratic term matrix in 0.5 * αᵀ H α
-        f: (n,) linear term vector in fᵀ α , usually f = -1
+        H: (n, n) Hessian matrix for the quadratic term in 0.5 * αᵀ H α.
+        f: (n,) linear term vector in fᵀ α. For SVMs, usually -1 for each component.
         Aeq: (m, n) equality constraint matrix, usually yᵀ
         beq: (m,) equality constraint rhs, usually 0
         lb: (n,) lower bound vector, usually 0

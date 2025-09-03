@@ -20,17 +20,24 @@ def quadprog_osqp(
     **params: Any,
     ) -> Tuple[npt.NDArray[np.float64], "Objective"]:
     """
-    Solve min 0.5 x^T H x + f^T x  s.t.  Aeq x = beq,  lb <= x <= ub using OSQP.
-        Args:
-        H: (n, n) Hessian matrix for the quadratic term in 0.5 * αᵀ H α.
-           For SVM duals, this is typically (y yᵀ) ⊙ K where K is the kernel matrix.
+    Solve the quadratic program using OSQP:
+
+        minimize   0.5 * αᵀ H α + fᵀ α
+        subject to Aeq α = beq
+                   lb ≤ α ≤ ub
+                   
+    Args:
+        H: (n, n) Hessian matrix for the quadratic term in 0.5 * αᵀ H α. For SVM duals, this is typically (y yᵀ) ⊙ K where K is the kernel matrix.
         f: (n,) linear term vector in fᵀ α. For SVMs, usually -1 for each component.
         Aeq: (m, n) optional equality constraint matrix, e.g. yᵀ for SVM bias constraint.
         beq: (m,) optional right-hand side of equality constraint, usually 0.
         lb: (n,) lower bound vector, e.g. all zeros in standard SVM dual.
         ub: (n,) upper bound vector, e.g. all entries equal to C in soft-margin SVM.
-        jitter: Small positive value added to the diagonal of H for numerical stability.
-        stabilize: Whether to apply stabilization (symmetrization + jitter) to the problem.
+        verbose: If True, print solver logs
+
+    Returns:
+        α*: Optimal solution vector
+        Objective: quadratic and linear parts of the optimum
     """
     # Lazy, guarded imports so the module can be imported without OSQP installed.
     try:
