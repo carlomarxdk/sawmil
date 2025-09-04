@@ -1,9 +1,11 @@
 # tests/test_svm.py
 import numpy as np
 import pytest
+from typing import Any
 from sklearn.svm import SVC
 from sklearn.datasets import make_moons, make_blobs
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import matthews_corrcoef as mcc
 
 # Prefer installed package; fall back to local src/ when running from repo
 try:
@@ -132,9 +134,15 @@ def test_kernels_moons_fast(kernel_name, params, solver_name):
 
     sk = SVC(**_mirror_sk_params(kernel_name, params)).fit(X, y)
 
-    acc_ours = ours.score(X, y)
-    acc_sk   = sk.score(X, y)
+    # acc_ours = ours.score(X, y)
+    # acc_sk   = sk.score(X, y)
+    
+    yhat_ours = ours.predict(X)
+    yhat_sk   = sk.predict(X)
 
+    acc_ours = mcc(y, yhat_ours)
+    acc_sk   = mcc(y, yhat_sk)
+    print(f"Kernel {kernel_name}: acc_ours={acc_ours:.4f}, acc_sk={acc_sk:.4f}")
     # Both should do well; allow some slack vs sklearn due to different solvers
     assert acc_ours >= 0.9
     assert acc_ours >= acc_sk - 0.06
@@ -167,3 +175,33 @@ def test_dual_feasibility_basic(solver_name):
     y_mapped = clf.y_
     assert y_mapped is not None
     assert abs(float(y_mapped @ alpha)) < 1e-6
+    
+    
+def test_osqp_solver_params_applied(monkeypatch):
+    """Ensure OSQP solver options are forwarded correctly."""
+    osqp = pytest.importorskip("osqp", reason="OSQP not installed")
+    pytest.importorskip("scipy", reason="OSQP requires SciPy")
+
+    # Capture setup/solve kwargs to verify propagation from solver_params
+    captured: dict[str, dict[str, Any]] = {}
+    original_setup = osqp.OSQP.setup
+    original_solve = osqp.OSQP.solve
+
+    def spy_setup(self, *args, **kwargs):  # type: ignore[no-redef]
+        captured["setup"] = kwargs
+        return original_setup(self, *args, **kwargs)
+
+    def spy_solve(self, *args, **kwargs):  # type: ignore[no-redef]
+        captured["solve"] = kwargs
+        return original_solve(self, *args, **kwargs)
+
+    monkeypatch.setattr(osqp.OSQP, "setup", spy_setup)
+    monkeypatch.setattr(osqp.OSQP, "solve", spy_solve)
+
+    X, y = _linear_toy(n_per=15, sep=2.0, noise=0.1, seed=5)
+    params = {"setup": {"max_iter": 1000, "eps_abs": 1e-7}}
+    SVM(C=1.0, kernel=Linear(), solver="osqp", solver_params=params).fit(X, y)
+
+    assert captured["setup"]["max_iter"] == 1000
+    assert captured["setup"]["eps_abs"] == pytest.approx(1e-7)
+    assert captured["solve"]["raise_error"] is False
