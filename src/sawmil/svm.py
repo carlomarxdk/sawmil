@@ -14,24 +14,26 @@ from .quadprog import quadprog
 class SVM(BaseEstimator, ClassifierMixin):
     """Support Vector Machine solved via the dual QP.
 
-    Parameters
-    ----------
-    C:
-        Regularization parameter. Larger values try to fit the training data
-        more exactly at the cost of a smaller margin.
-    kernel:
-        Specification of the kernel to use.  This can be an instance of a
-        :class:`~sawmil.kernels.BaseKernel`, a callable, or a string understood
-        by :func:`~sawmil.kernels.get_kernel` (e.g. ``"linear"`` or
-        ``"rbf"``).
-    solver:
-        Name of the quadratic program solver backend.  ``"gurobi"`` and
-        ``"osqp"`` are supported.
-    tol:
-        Threshold used to decide whether a Lagrange multiplier is treated as
-        zero when identifying support vectors.
-    verbose:
-        If ``True`` the underlying solver may print progress information.
+    Args:
+        C:
+            Regularization parameter. Larger values try to fit the training data
+            more exactly at the cost of a smaller margin.
+        kernel:
+            Specification of the kernel to use.  This can be an instance of a
+            :class:`~sawmil.kernels.BaseKernel`, a callable, or a string understood
+        solver:
+            Name of the quadratic program solver backend.  ``"gurobi"`` and
+            ``"osqp"`` are supported.
+        tol:
+            Threshold used to decide whether a Lagrange multiplier is treated as
+            zero when identifying support vectors.
+        verbose:
+            If ``True`` the underlying solver may print progress information.
+        solver_params: dict of backend-specific options. 
+            Examples:
+                - solver='gurobi': {'env': <gp.Env>, 'params': {'Method':2, 'Threads':1}}
+                - solver='osqp'  : {'setup': {...}, 'solve': {...}} or flat keys for setup
+                - solver='daqp'  : {'eps_abs': 1e-8, 'eps_rel': 1e-8, ...}
     """
 
     C: float = 1.0
