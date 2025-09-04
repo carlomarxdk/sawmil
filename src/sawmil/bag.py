@@ -5,14 +5,16 @@ from typing import List, Sequence, Optional
 import numpy as np
 import numpy.typing as npt
 
-Label = float  # or int; we'll store 0/1 or -1/+1; convert as needed downstream
+Label = float
+
 
 @dataclass
 class Bag:
     """A bag of instances with a bag-level label and per-instance (0/1) flags."""
     X: npt.NDArray[np.float64]            # shape (n_i, d)
     y: Label                              # bag label (e.g., 0/1 or -1/+1)
-    intra_bag_label: Optional[npt.NDArray[np.float64]] = None  # shape (n_i,), 0/1
+    intra_bag_label: Optional[npt.NDArray[np.float64]
+                              ] = None  # shape (n_i,), 0/1
 
     def __post_init__(self):
         self.X = np.asarray(self.X, dtype=float)
@@ -23,20 +25,21 @@ class Bag:
             # default: all ones
             self.intra_bag_label = np.ones(n_i, dtype=float)
         else:
-            self.intra_bag_label = np.asarray(self.intra_bag_label, dtype=float).ravel()
+            self.intra_bag_label = np.asarray(
+                self.intra_bag_label, dtype=float).ravel()
             if self.intra_bag_label.shape[0] != n_i:
-                raise ValueError("intra_bag_label length must match number of instances.")
+                raise ValueError(
+                    "intra_bag_label length must match number of instances.")
 
     @property
-    def n(self) -> int: 
+    def n(self) -> int:
         '''Number of instances in the bag.'''
         return self.X.shape[0]
 
     @property
-    def d(self) -> int: 
+    def d(self) -> int:
         '''Number of features.'''
         return self.X.shape[1]
-
 
     @property
     def mask(self) -> npt.NDArray[np.float64]:
@@ -50,6 +53,7 @@ class Bag:
     def negatives(self) -> npt.NDArray[np.int64]:
         """Indices of instances with intra_bag_label == 0."""
         return np.flatnonzero(self.mask < 0.5)
+
 
 @dataclass
 class BagDataset:
@@ -84,7 +88,8 @@ class BagDataset:
         if intra_bag_labels is None:
             intra_bag_labels = [None] * len(bags)
         if len(bags) != len(y) or len(bags) != len(intra_bag_labels):
-            raise ValueError("bags, y, intra_bag_labels must have same length.")
+            raise ValueError(
+                "bags, y, intra_bag_labels must have same length.")
         return BagDataset([
             Bag(X=b, y=float(lbl), intra_bag_label=ibl)
             for b, lbl, ibl in zip(bags, y, intra_bag_labels)
@@ -193,7 +198,7 @@ class BagDataset:
     def num_bags(self) -> int:
         '''Returns the number of bags.'''
         return len(self.bags)
-    
+
     @property
     def num_pos_bags(self) -> int:
         '''Returns the number of positive bags.'''
@@ -203,7 +208,7 @@ class BagDataset:
     def num_neg_bags(self) -> int:
         '''Returns the number of negative bags.'''
         return len(self.negative_bags())
-    
+
     @property
     def y(self) -> np.ndarray:
         '''Returns all the bag labels.'''

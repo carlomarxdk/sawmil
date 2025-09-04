@@ -18,14 +18,14 @@ def quadprog_osqp(
     ub: npt.NDArray[np.float64],
     verbose: bool = False,
     **params: Any,
-    ) -> Tuple[npt.NDArray[np.float64], "Objective"]:
+) -> Tuple[npt.NDArray[np.float64], "Objective"]:
     """
     Solve the quadratic program using OSQP:
 
         minimize   0.5 * αᵀ H α + fᵀ α
         subject to Aeq α = beq
                    lb ≤ α ≤ ub
-                   
+
     Args:
         H: (n, n) Hessian matrix for the quadratic term in 0.5 * αᵀ H α. For SVM duals, this is typically (y yᵀ) ⊙ K where K is the kernel matrix.
         f: (n,) linear term vector in fᵀ α. For SVMs, usually -1 for each component.
@@ -48,7 +48,6 @@ def quadprog_osqp(
         import osqp
     except Exception as exc:  # pragma: no cover
         raise ImportError("osqp is required for solver='osqp'") from exc
-
 
     n = H.shape[0]
     P = sp.csc_matrix(H)
@@ -78,11 +77,12 @@ def quadprog_osqp(
     solve_opts: dict[str, Any] = dict(params.get("solve", {}))
     if not setup_opts and not solve_opts:
         # treat all non-nested options as setup()
-        setup_opts = {k: v for k, v in params.items() if k not in ("setup", "solve")}
+        setup_opts = {k: v for k,
+                      v in params.items() if k not in ("setup", "solve")}
 
     # sensible defaults; allow override via setup_opts
     setup_defaults = dict(
-        polishing=True,   
+        polishing=True,
         eps_abs=1e-8,
         eps_rel=1e-8,
         max_iter=20000,
@@ -94,7 +94,8 @@ def quadprog_osqp(
     solve_opts.setdefault("raise_error", False)
 
     prob = osqp.OSQP()
-    prob.setup(P=P, q=q, A=A, l=lower_vec, u=upper_vec, verbose=verbose, **setup_opts)
+    prob.setup(P=P, q=q, A=A, l=lower_vec, u=upper_vec,
+               verbose=verbose, **setup_opts)
     res = prob.solve(**solve_opts)
 
     if res.info.status_val not in (1, 2):  # 1=solved, 2=solved_inaccurate

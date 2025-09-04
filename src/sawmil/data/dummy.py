@@ -10,10 +10,12 @@ try:
 except ImportError:
     from sawmil.bag import Bag, BagDataset  # fallback import
 
+
 @dataclass
 class GaussianComp:
     mu: np.ndarray           # (d,)
     cov: np.ndarray          # (d,d)
+
 
 def _rand_rot_cov(rng: Generator, d: int, scale: float = 1.0, anisotropy: float = 0.5) -> np.ndarray:
     """
@@ -30,6 +32,7 @@ def _rand_rot_cov(rng: Generator, d: int, scale: float = 1.0, anisotropy: float 
     evals = np.linspace(max_eig, min_eig, d)
     return Q @ np.diag(evals) @ Q.T
 
+
 def _components_from_centers(rng: Generator, centers: Sequence[Sequence[float]],
                              scales: Sequence[Tuple[float, float]]) -> list[GaussianComp]:
     """
@@ -42,8 +45,10 @@ def _components_from_centers(rng: Generator, centers: Sequence[Sequence[float]],
         comps.append(GaussianComp(mu=np.asarray(mu, dtype=float), cov=cov))
     return comps
 
+
 def _sample_comp(rng: Generator, comp: GaussianComp, n: int) -> np.ndarray:
     return rng.multivariate_normal(mean=comp.mu, cov=comp.cov, size=n)
+
 
 def generate_dummy_bags(
     *,
@@ -54,14 +59,18 @@ def generate_dummy_bags(
     # Positive & negative class mixtures
     pos_centers: Sequence[Sequence[float]] = ((+2.0, +1.0), (+4.0, +3.0)),
     neg_centers: Sequence[Sequence[float]] = ((-1.5, -1.0), (-3.0, +0.5)),
-    pos_scales: Sequence[Tuple[float, float]] = ((2.0, 0.6), (1.2, 0.8)),  # (scale, anisotropy)
+    pos_scales: Sequence[Tuple[float, float]] = (
+        (2.0, 0.6), (1.2, 0.8)),  # (scale, anisotropy)
     neg_scales: Sequence[Tuple[float, float]] = ((1.5, 0.5), (2.5, 0.9)),
     # Intra-bag positives (only matter for positive bags)
-    pos_intra_rate: Tuple[float, float] = (0.3, 0.8),  # per-bag fraction range for intra==1
+    # per-bag fraction range for intra==1
+    pos_intra_rate: Tuple[float, float] = (0.3, 0.8),
     ensure_pos_in_every_pos_bag: bool = True,
     # Cross-contamination
-    neg_pos_noise_rate: Tuple[float, float] = (0.00, 0.05),  # fraction of pos-like instances inside *negative* bags
-    pos_neg_noise_rate: Tuple[float, float] = (0.00, 0.20),  # fraction of neg-like instances inside *positive* bags
+    # fraction of pos-like instances inside *negative* bags
+    neg_pos_noise_rate: Tuple[float, float] = (0.00, 0.05),
+    # fraction of neg-like instances inside *positive* bags
+    pos_neg_noise_rate: Tuple[float, float] = (0.00, 0.20),
     # Outliers sprinkled everywhere
     outlier_rate: float = 0.01,
     outlier_scale: float = 10.0,
@@ -95,7 +104,8 @@ def generate_dummy_bags(
         return X
 
     def add_outliers(X: np.ndarray, frac: float) -> None:
-        if frac <= 0: return
+        if frac <= 0:
+            return
         m = X.shape[0]
         n_out = int(round(frac * m))
         if n_out > 0:
@@ -118,16 +128,19 @@ def generate_dummy_bags(
         r_distr = rng.uniform(*pos_neg_noise_rate)
         n_neg_like = max(0, n_neg_like)  # in case n_pos_inst == m
         # sample positives from pos-mixture
-        X_pos = sample_from_mix(n_pos_inst, pos_comps) if n_pos_inst > 0 else np.zeros((0, d))
+        X_pos = sample_from_mix(
+            n_pos_inst, pos_comps) if n_pos_inst > 0 else np.zeros((0, d))
         # sample distractors from neg-mixture
-        X_distr = sample_from_mix(n_neg_like, neg_comps) if n_neg_like > 0 else np.zeros((0, d))
+        X_distr = sample_from_mix(
+            n_neg_like, neg_comps) if n_neg_like > 0 else np.zeros((0, d))
         X = np.vstack([X_pos, X_distr]) if X_distr.size else X_pos
 
         # optional: sprinkle outliers
         add_outliers(X, outlier_rate)
 
         # intra labels: 1 for pos-like, 0 for distractors
-        intra = np.concatenate([np.ones(n_pos_inst), np.zeros(n_neg_like)]).astype(float)
+        intra = np.concatenate(
+            [np.ones(n_pos_inst), np.zeros(n_neg_like)]).astype(float)
         # shuffle instances within the bag
         perm = rng.permutation(X.shape[0])
         X = X[perm]
@@ -143,9 +156,12 @@ def generate_dummy_bags(
         n_pos_like = int(round(r_noise * m))
         n_neg_core = m - n_pos_like
 
-        X_neg_core = sample_from_mix(n_neg_core, neg_comps) if n_neg_core > 0 else np.zeros((0, d))
-        X_pos_noise = sample_from_mix(n_pos_like, pos_comps) if n_pos_like > 0 else np.zeros((0, d))
-        X = np.vstack([X_neg_core, X_pos_noise]) if X_pos_noise.size else X_neg_core
+        X_neg_core = sample_from_mix(
+            n_neg_core, neg_comps) if n_neg_core > 0 else np.zeros((0, d))
+        X_pos_noise = sample_from_mix(
+            n_pos_like, pos_comps) if n_pos_like > 0 else np.zeros((0, d))
+        X = np.vstack([X_neg_core, X_pos_noise]
+                      ) if X_pos_noise.size else X_neg_core
 
         add_outliers(X, outlier_rate)
 
@@ -153,7 +169,8 @@ def generate_dummy_bags(
         # they are ignored by your negative_instances(); we can still pass all ones.
         intra = np.ones(X.shape[0], dtype=float)
         perm = rng.permutation(X.shape[0])
-        X = X[perm]; intra = intra[perm]
+        X = X[perm]
+        intra = intra[perm]
 
         bags.append(Bag(X=X, y=0.0, intra_bag_label=intra))
 

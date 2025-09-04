@@ -13,13 +13,14 @@ try:
     from .solvers._osqp import quadprog_osqp as _qp_osqp
 except Exception:  # OSQP not installed
     _qp_osqp = None
-    
+
 try:
     from .solvers._daqp import quadprog_daqp as _qp_daqp
 except Exception:  # DAQP not installed
     _qp_daqp = None
 
 log = logging.getLogger("quadprog")
+
 
 def _validate_and_stabilize(
     H: npt.NDArray[np.float64],
@@ -62,8 +63,8 @@ def _validate_and_stabilize(
     """
 
     # Coerce, copy and dtype
-    H  = np.asarray(H, dtype=np.float64).copy()
-    f  = np.asarray(f, dtype=np.float64).ravel().copy()
+    H = np.asarray(H, dtype=np.float64).copy()
+    f = np.asarray(f, dtype=np.float64).ravel().copy()
     lb = np.asarray(lb, dtype=np.float64).ravel().copy()
     ub = np.asarray(ub, dtype=np.float64).ravel().copy()
 
@@ -74,10 +75,11 @@ def _validate_and_stabilize(
     if f.shape != (n,):
         raise ValueError(f"f must be shape (n,); got {f.shape}")
     if lb.shape != (n,) or ub.shape != (n,):
-        raise ValueError(f"lb and ub must be shape (n,); got {lb.shape}, {ub.shape}")
+        raise ValueError(
+            f"lb and ub must be shape (n,); got {lb.shape}, {ub.shape}")
     if np.any(lb > ub):
         raise ValueError("Each component must satisfy lb[i] <= ub[i].")
-    
+
     if (Aeq is None) ^ (beq is None):
         raise ValueError("Provide both Aeq and beq, or neither.")
     if Aeq is not None:
@@ -101,13 +103,13 @@ def _validate_and_stabilize(
 
 
 def quadprog(
-    H: npt.NDArray[np.float64], 
-    f: npt.NDArray[np.float64], 
+    H: npt.NDArray[np.float64],
+    f: npt.NDArray[np.float64],
     Aeq: Optional[npt.NDArray[np.float64]],
-    beq: Optional[npt.NDArray[np.float64]], 
-    lb: npt.NDArray[np.float64], 
+    beq: Optional[npt.NDArray[np.float64]],
+    lb: npt.NDArray[np.float64],
     ub: npt.NDArray[np.float64],
-    solver: str = "gurobi", 
+    solver: str = "gurobi",
     verbose: bool = False,
     solver_params: Optional[Mapping[str, Any]] = None,
 ) -> Union[Tuple[npt.NDArray[np.float64], "Objective"], None]:
@@ -131,14 +133,13 @@ def quadprog(
                 - solver='gurobi': {'env': <gp.Env>, 'params': {'Method':2, 'Threads':1}}
                 - solver='osqp'  : {'setup': {...}, 'solve': {...}} or flat keys for setup
                 - solver='daqp'  : {'eps_abs': 1e-8, 'eps_rel': 1e-8, ...}
-                
+
     Returns:
         α*: Optimal solution vector
         Objective: quadratic and linear parts of the optimum
     """
     H, f, Aeq, beq, lb, ub = _validate_and_stabilize(H, f, Aeq, beq, lb, ub)
     params = dict(solver_params or {})
-
 
     if solver == "gurobi":
         if _qp_gurobi is None:

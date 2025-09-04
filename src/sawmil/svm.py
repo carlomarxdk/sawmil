@@ -41,19 +41,25 @@ class SVM(BaseEstimator, ClassifierMixin):
     verbose: bool = False
     solver_params: Optional[Mapping[str, Any]] = None
 
-
     # Fitted attributes -------------------------------------------------
     _k: Optional[BaseKernel] = field(default=None, init=False, repr=False)
-    X_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
-    y_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
-    classes_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
-    alpha_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
-    support_: Optional[npt.NDArray[np.int64]] = field(default=None, init=False, repr=False)
-    support_vectors_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
-    dual_coef_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
+    X_: Optional[npt.NDArray[np.float64]] = field(
+        default=None, init=False, repr=False)
+    y_: Optional[npt.NDArray[np.float64]] = field(
+        default=None, init=False, repr=False)
+    classes_: Optional[npt.NDArray[np.float64]] = field(
+        default=None, init=False, repr=False)
+    alpha_: Optional[npt.NDArray[np.float64]] = field(
+        default=None, init=False, repr=False)
+    support_: Optional[npt.NDArray[np.int64]] = field(
+        default=None, init=False, repr=False)
+    support_vectors_: Optional[npt.NDArray[np.float64]] = field(
+        default=None, init=False, repr=False)
+    dual_coef_: Optional[npt.NDArray[np.float64]] = field(
+        default=None, init=False, repr=False)
     intercept_: Optional[float] = field(default=None, init=False, repr=False)
-    coef_: Optional[npt.NDArray[np.float64]] = field(default=None, init=False, repr=False)
-
+    coef_: Optional[npt.NDArray[np.float64]] = field(
+        default=None, init=False, repr=False)
 
     def _get_kernel(self, X_train: npt.NDArray[np.float64]) -> BaseKernel:
         """Instantiate and fit kernel on training X for defaults like gamma."""
@@ -74,7 +80,8 @@ class SVM(BaseEstimator, ClassifierMixin):
         # Map arbitrary binary labels to {-1,+1} (stable, order by np.unique)
         classes = np.unique(y)
         if classes.size != 2:
-            raise ValueError("Binary classification only (exactly two classes required).")
+            raise ValueError(
+                "Binary classification only (exactly two classes required).")
         self.classes_ = classes.astype(float)
         y_mapped = np.where(y == classes[0], -1.0, 1.0)
 
@@ -95,7 +102,8 @@ class SVM(BaseEstimator, ClassifierMixin):
         ub = np.full(n, float(self.C), dtype=float)
 
         # Solve dual
-        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose, solver=self.solver, solver_params=self.solver_params)
+        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose,
+                            solver=self.solver, solver_params=self.solver_params)
         self.alpha_ = alpha
 
         # Support vectors
@@ -126,7 +134,8 @@ class SVM(BaseEstimator, ClassifierMixin):
         # Fast path for linear kernel
         if self.coef_ is not None:
             return (X @ self.coef_) + self.intercept_
-        k = self._get_kernel(self.X_)   # do NOT refit on X; use the training-fitted kernel
+        # do NOT refit on X; use the training-fitted kernel
+        k = self._get_kernel(self.X_)
         Ktest = k(self.X_, X)           # (n_train, n_test)
         return (self.alpha_ * self.y_) @ Ktest + self.intercept_
 

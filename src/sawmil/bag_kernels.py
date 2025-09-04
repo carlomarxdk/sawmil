@@ -9,23 +9,29 @@ import numpy.typing as npt
 from .bag import Bag
 from .kernels import BaseKernel, Linear
 
-# ---------- Normalizer Utils 
+# ---------- Normalizer Utils
 _NormalizerName = Literal["none", "average", "featurespace"]
 
 # ---------- Base Multiple-instance Kernel
+
+
 class BaseBagKernel(ABC):
     '''Base class for the Multiple-instance (bags) kernel'''
+
     def fit(self, bags: List[Bag]) -> "BaseBagKernel":
         return self
+
     @abstractmethod
     def __call__(self, bags_X: List[Bag], bags_Y: List[Bag]) -> npt.NDArray[np.float64]:
         ...
+
 
 def _effective_count(b: Bag) -> float:
     '''Counts the effective instances in a bag (relevant only if classifier or kernel uses the intra_bag_labels)'''
     s = float(b.mask.sum())
     return s if s > 0.0 else max(1.0, float(b.n))
-    
+
+
 @dataclass
 class WeightedMeanBagKernel(BaseBagKernel):
     """
@@ -143,16 +149,21 @@ class WeightedMeanBagKernel(BaseBagKernel):
                 if same and j != i:
                     K[j, i] = kij
         return K
-    
+
 # ---------- Precomputed bag kernel ----------
+
+
 @dataclass
 class PrecomputedBagKernel(BaseBagKernel):
     K: npt.NDArray[np.float64]
+
     def __call__(self, bags_X: List[Bag], bags_Y: List[Bag]) -> npt.NDArray[np.float64]:
         # Caller must pass consistent ordering to match K
         return np.asarray(self.K, dtype=float)
 
 # ---------- Simple factory ----------
+
+
 def make_bag_kernel(
     inst_kernel: BaseKernel,
     *,

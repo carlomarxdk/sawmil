@@ -4,11 +4,12 @@ from typing import Optional, Sequence, List, Literal, Any, Mapping
 import numpy as np
 import numpy.typing as npt
 
-from .svm import SVM                   
+from .svm import SVM
 from .bag import Bag, BagDataset
 from .kernels import get_kernel, KernelType, Linear
 from .bag_kernels import BaseBagKernel, make_bag_kernel, WeightedMeanBagKernel
 from .quadprog import quadprog
+
 
 class NSK(SVM):
     """
@@ -36,7 +37,7 @@ class NSK(SVM):
     ) -> "NSK":
         """
         Initialize the NSK model.
-        
+
         Args:
             C: Regularization parameter.
             kernel: Kernel type (default: "linear").
@@ -64,12 +65,13 @@ class NSK(SVM):
         self.p = p
         self.use_intra_labels = use_intra_labels
         self.fast_linear = fast_linear
-        self.bag_kernel = make_bag_kernel(inst_kernel=self.kernel, normalizer=self.normalizer, p=self.p, use_intra_labels=self.use_intra_labels, fast_linear=self.fast_linear)
+        self.bag_kernel = make_bag_kernel(inst_kernel=self.kernel, normalizer=self.normalizer,
+                                          p=self.p, use_intra_labels=self.use_intra_labels, fast_linear=self.fast_linear)
         self.solver_params = dict(solver_params or {})
 
-
         # Fitted state
-        self.bags_: Optional[List[Bag]] = None  # training bags (ordering does not matter)
+        # training bags (ordering does not matter)
+        self.bags_: Optional[List[Bag]] = None
 
     # ---------- helpers ----------
     @staticmethod
@@ -85,21 +87,25 @@ class NSK(SVM):
         # List[Bag]
         if len(bags) > 0 and isinstance(bags[0], Bag):  # type: ignore[index]
             blist = list(bags)  # type: ignore[assignment]
-            y_arr = np.asarray([b.y for b in blist], dtype=float) if y is None else np.asarray(y, dtype=float).ravel()
+            y_arr = np.asarray([b.y for b in blist], dtype=float) if y is None else np.asarray(
+                y, dtype=float).ravel()
             if y is not None and y_arr.shape[0] != len(blist):
                 raise ValueError("Length of y must equal number of bags.")
             return blist, y_arr
         # Raw arrays + y (bags without intra labels -> all uniform weights)
         if y is None:
-            raise ValueError("When passing raw arrays for bags, you must also pass y.")
-        blist = [Bag(X=np.asarray(b, dtype=float), y=float(lbl)) for b, lbl in zip(bags, y)]
+            raise ValueError(
+                "When passing raw arrays for bags, you must also pass y.")
+        blist = [Bag(X=np.asarray(b, dtype=float), y=float(lbl))
+                 for b, lbl in zip(bags, y)]
         return blist, np.asarray(y, dtype=float).ravel()
 
     def _ensure_bag_kernel(self) -> BaseBagKernel:
         if self.bag_kernel is not None:
             return self.bag_kernel
         # Build instance kernel, then lift to a bag kernel
-        inst_k = get_kernel(self.base_kernel, gamma=self.gamma, degree=self.degree, coef0=self.coef0)
+        inst_k = get_kernel(self.base_kernel, gamma=self.gamma,
+                            degree=self.degree, coef0=self.coef0)
         # Note: bag_kernels make normalized weights (means) in the numerator,
         # so to avoid double normalization we default to normalizer="none".
         self.bag_kernel = make_bag_kernel(
@@ -112,7 +118,7 @@ class NSK(SVM):
         # Fit once to allow instance kernel to set defaults (e.g., gamma)
         # (bag_k.fit looks at the first non-empty bag for dimensionality)
         return self.bag_kernel
-    
+
     def _can_linearize(self, bk) -> bool:
         # recover w only for linear instance kernel + WeightedMeanBagKernel + p=1
         return (
@@ -137,7 +143,8 @@ class NSK(SVM):
         # Map labels to {-1, +1} (store original classes)
         classes = np.unique(y_arr)
         if classes.size != 2:
-            raise ValueError("Binary classification only—y must have exactly two classes.")
+            raise ValueError(
+                "Binary classification only—y must have exactly two classes.")
         self.classes_ = classes.astype(float)
         Y = np.where(y_arr == classes[0], -1.0, 1.0)
         self.y_ = Y
@@ -158,13 +165,16 @@ class NSK(SVM):
         ub = np.full(n, C_eff, dtype=float)
 
         # Solve (reuse your quadprog function from SVM)
-        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose, solver=self.solver, solver_params=self.solver_params)
+        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose,
+                            solver=self.solver, solver_params=self.solver_params)
         self.alpha_ = alpha
 
         # Identify support “vectors” (bags)
         sv_mask = alpha > self.tol
         self.support_ = np.flatnonzero(sv_mask).astype(int)
-        self.support_vectors_ = [bag_list[i] for i in self.support_]   # store the Bag objects
+        self.support_vectors_ = [bag_list[i]
+                                 # store the Bag objects
+                                 for i in self.support_]
         self.dual_coef_ = (alpha[sv_mask] * Y[sv_mask]).reshape(1, -1)
 
         # Intercept from margin SVs (0 < α_i < C_eff)
@@ -186,7 +196,8 @@ class NSK(SVM):
             self.coef_ = w
 
             # Recompute b using margin SVs (or all SVs if none on-margin)
-            on_margin = (self.alpha_ > self.tol) & (self.alpha_ < C_eff - self.tol)
+            on_margin = (self.alpha_ > self.tol) & (
+                self.alpha_ < C_eff - self.tol)
             use = on_margin if np.any(on_margin) else (self.alpha_ > self.tol)
             if np.any(use):
                 b_vals = self.y_[use] - Z[use] @ w
@@ -196,8 +207,7 @@ class NSK(SVM):
 
         self.X_ = None
         return self
-    
-    
+
     def _phi(self, bag: Bag, *, normalizer: str) -> np.ndarray:
         """
         Bag embedding φ(B) in ℝ^d matching the bag kernel:
@@ -209,7 +219,8 @@ class NSK(SVM):
         """
         n, X = bag.n, bag.X
         if n == 0:
-            return np.zeros((self.support_vectors_[0].d,), dtype=float)  # d from any train bag
+            # d from any train bag
+            return np.zeros((self.support_vectors_[0].d,), dtype=float)
 
         w = np.full(n, 1.0 / n, dtype=float)
 
@@ -238,7 +249,8 @@ class NSK(SVM):
         elif len(bags) > 0 and isinstance(bags[0], Bag):  # type: ignore[index]
             test_bags = list(bags)  # type: ignore[assignment]
         else:
-            test_bags = [Bag(X=np.asarray(b, dtype=float), y=0.0) for b in bags]
+            test_bags = [Bag(X=np.asarray(b, dtype=float), y=0.0)
+                         for b in bags]
 
         bk = self._ensure_bag_kernel()
 
@@ -268,4 +280,3 @@ class NSK(SVM):
         y_pred = self.predict(bags)
         y_true = np.asarray(y_true, dtype=float).ravel()
         return float((y_pred == y_true).mean())
-

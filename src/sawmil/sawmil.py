@@ -11,6 +11,7 @@ from .smil import sMIL
 from .svm import SVM
 from .kernels import KernelType
 
+
 @dataclass
 class sAwMIL(BaseEstimator, ClassifierMixin):
     '''Sparse Aware MIL (SVM)'''
@@ -55,16 +56,21 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
             return list(bags)  # type: ignore[return-value]
         # Raw arrays path: require y and intra_bag_labels
         if y is None or intra_bag_labels is None:
-            raise ValueError("For raw arrays, pass both y and intra_bag_labels (one 1D mask per bag).")
-        if not (len(bags) == len(y) == len(intra_bag_labels)):  # type: ignore[arg-type]
-            raise ValueError("bags, y, and intra_bag_labels must have the same length.")
+            raise ValueError(
+                "For raw arrays, pass both y and intra_bag_labels (one 1D mask per bag).")
+        # type: ignore[arg-type]
+        if not (len(bags) == len(y) == len(intra_bag_labels)):
+            raise ValueError(
+                "bags, y, and intra_bag_labels must have the same length.")
         out: List[Bag] = []
-        for X_i, y_i, m_i in zip(bags, y, intra_bag_labels):  # type: ignore[assignment]
+        # type: ignore[assignment]
+        for X_i, y_i, m_i in zip(bags, y, intra_bag_labels):
             out.append(
                 Bag(
                     X=np.asarray(X_i, dtype=float),
                     y=float(y_i),
-                    intra_bag_label=np.asarray(m_i, dtype=float).ravel(),  # <-- singular name
+                    intra_bag_label=np.asarray(
+                        m_i, dtype=float).ravel(),  # <-- singular name
                 )
             )
         return out
@@ -119,8 +125,10 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
         X_all, y_bag, mask, _ = self._flatten(blist)
         if X_all.shape[0] == 0:
             # degenerate
-            self.sil_ = SVM(C=self.C, kernel="linear", solver=self.solver, tol=self.tol, verbose=self.verbose)
-            self.sil_.coef_, self.sil_.intercept_ = np.zeros((blist[0].d,)), 0.0
+            self.sil_ = SVM(C=self.C, kernel="linear",
+                            solver=self.solver, tol=self.tol, verbose=self.verbose)
+            self.sil_.coef_, self.sil_.intercept_ = np.zeros(
+                (blist[0].d,)), 0.0
             self.coef_, self.intercept_, self.cutoff_ = self.sil_.coef_, self.sil_.intercept_, 0.0
             return self
 
@@ -139,7 +147,8 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
             sil.fit(X_sil, y_sil)
             self.sil_ = sil
             self.coef_ = sil.coef_.ravel() if sil.coef_ is not None else None
-            self.intercept_ = float(sil.intercept_) if sil.intercept_ is not None else None
+            self.intercept_ = float(
+                sil.intercept_) if sil.intercept_ is not None else None
             self.cutoff_ = float("-inf")
             return self
 
@@ -159,7 +168,8 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
             # fallback: ensure at least min_pos_ratio positives overall
             min_needed = max(1, int(self.min_pos_ratio * len(S_pos)))
             if chosen.sum() < min_needed:
-                k = min(len(S_pos), max(min_needed, int(round(eta * len(S_pos)))))
+                k = min(len(S_pos), max(
+                    min_needed, int(round(eta * len(S_pos)))))
                 topk = np.argsort(-S_pos)[:k]
                 chosen = np.zeros_like(chosen)
                 chosen[topk] = True
@@ -176,7 +186,7 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
         sil = SVM(
             C=self.C,
             kernel=self.kernel,
-            solver=self.solver,          
+            solver=self.solver,
             tol=self.tol,
             verbose=self.verbose,
         )
@@ -184,7 +194,8 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
         self.sil_ = sil
 
         self.coef_ = sil.coef_.ravel() if sil.coef_ is not None else None
-        self.intercept_ = float(sil.intercept_) if sil.intercept_ is not None else None
+        self.intercept_ = float(
+            sil.intercept_) if sil.intercept_ is not None else None
         return self
 
     # ---------- inference ----------

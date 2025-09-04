@@ -16,10 +16,10 @@ except Exception:  # pragma: no cover
     from ..src.sawmil.kernels import Linear, RBF, Polynomial, Sigmoid  # type: ignore
 
 
-# ----------------- helpers -----------------
 
 def _standardize(X):
     return StandardScaler().fit_transform(X)
+
 
 def _linear_toy(n_per=25, sep=2.0, noise=0.15, seed=0):
     rng = np.random.default_rng(seed)
@@ -30,9 +30,11 @@ def _linear_toy(n_per=25, sep=2.0, noise=0.15, seed=0):
     y = np.hstack([np.ones(n_per), np.zeros(n_per)])
     return _standardize(X), y
 
+
 def _moons(n=120, noise=0.2, seed=2):
     X, y = make_moons(n_samples=n, noise=noise, random_state=seed)
     return _standardize(X), y
+
 
 def _make_kernel(name: str, params: dict):
     name = name.lower()
@@ -52,6 +54,7 @@ def _make_kernel(name: str, params: dict):
             coef0=params.get("coef0", 0.0),
         )
     raise ValueError(f"Unknown kernel: {name}")
+
 
 def _mirror_sk_params(kernel_name, params):
     """Build sklearn SVC params parallel to ours."""
@@ -85,18 +88,19 @@ def test_linear_kernel_matches_sklearn(solver_name):
     C = 1.0
 
     k = _make_kernel("linear", {})
-    ours = SVM(C=C, kernel=k, solver=solver_name, tol=1e-6, verbose=False).fit(X, y)
-    sk   = SVC(C=C, kernel="linear").fit(X, y)
+    ours = SVM(C=C, kernel=k, solver=solver_name,
+               tol=1e-6, verbose=False).fit(X, y)
+    sk = SVC(C=C, kernel="linear").fit(X, y)
 
     # Accuracy parity on train
     acc_ours = ours.score(X, y)
-    acc_sk   = sk.score(X, y)
+    acc_sk = sk.score(X, y)
     assert abs(acc_ours - acc_sk) <= 1e-3
 
     # Decision sign parity (allow a global sign flip)
     df_ours = np.sign(ours.decision_function(X))
-    df_sk   = np.sign(sk.decision_function(X))
-    sign_match    = np.mean(df_ours == df_sk)
+    df_sk = np.sign(sk.decision_function(X))
+    sign_match = np.mean(df_ours == df_sk)
     sign_mismatch = np.mean(df_ours == -df_sk)
     assert max(sign_match, sign_mismatch) > 0.98
 
@@ -104,8 +108,8 @@ def test_linear_kernel_matches_sklearn(solver_name):
     assert ours.coef_ is not None
     w_ours = ours.coef_.ravel()
     b_ours = float(ours.intercept_)
-    w_sk   = sk.coef_.ravel()
-    b_sk   = float(sk.intercept_[0])
+    w_sk = sk.coef_.ravel()
+    b_sk = float(sk.intercept_[0])
 
     err_same = np.linalg.norm(w_ours - w_sk) + abs(b_ours - b_sk)
     err_flip = np.linalg.norm(w_ours + w_sk) + abs(b_ours + b_sk)
@@ -130,18 +134,19 @@ def test_kernels_moons_fast(kernel_name, params, solver_name):
     X, y = _moons(n=120, noise=0.2, seed=2)
 
     k = _make_kernel(kernel_name, params)
-    ours = SVM(kernel=k, solver=solver_name, tol=1e-6, verbose=False, C=params.get("C", 1.0)).fit(X, y)
+    ours = SVM(kernel=k, solver=solver_name, tol=1e-6,
+               verbose=False, C=params.get("C", 1.0)).fit(X, y)
 
     sk = SVC(**_mirror_sk_params(kernel_name, params)).fit(X, y)
 
     # acc_ours = ours.score(X, y)
     # acc_sk   = sk.score(X, y)
-    
+
     yhat_ours = ours.predict(X)
-    yhat_sk   = sk.predict(X)
+    yhat_sk = sk.predict(X)
 
     acc_ours = mcc(y, yhat_ours)
-    acc_sk   = mcc(y, yhat_sk)
+    acc_sk = mcc(y, yhat_sk)
     print(f"Kernel {kernel_name}: acc_ours={acc_ours:.4f}, acc_sk={acc_sk:.4f}")
     # Both should do well; allow some slack vs sklearn due to different solvers
     assert acc_ours >= 0.9
@@ -175,8 +180,8 @@ def test_dual_feasibility_basic(solver_name):
     y_mapped = clf.y_
     assert y_mapped is not None
     assert abs(float(y_mapped @ alpha)) < 1e-6
-    
-    
+
+
 def test_osqp_solver_params_applied(monkeypatch):
     """Ensure OSQP solver options are forwarded correctly."""
     osqp = pytest.importorskip("osqp", reason="OSQP not installed")

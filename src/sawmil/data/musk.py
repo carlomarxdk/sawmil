@@ -17,6 +17,7 @@ log = logging.getLogger('data.musk')
 BAG_COL = 'molecule_name'
 LABEL_COL = 'class'
 
+
 def load_musk_bags(
     *,
     version: int = 1,
@@ -33,19 +34,20 @@ def load_musk_bags(
         standardize: whether to standardize the features. The StandardScaler will be fit on the training data (default True)
     Returns: (train_ds, test_ds)
     """
-    
+
     musk = fetch_openml(name="musk", version=version, as_frame=True)
     df = musk.frame.copy()
 
     label = df[LABEL_COL]
-    
+
     bag_list: list[Bag] = []
     cols = df.columns.tolist()
     use_cols = [c for c in cols if c != LABEL_COL and c != BAG_COL]
     for name, grp in df.groupby(df[BAG_COL].astype(str)):
         X = grp[use_cols].to_numpy(dtype=float)
         ys = label.loc[grp.index].to_numpy(dtype=float)
-        y_bag = float(ys[0]) if np.all(ys == ys[0]) else float((ys > 0.5).any())
+        y_bag = float(ys[0]) if np.all(
+            ys == ys[0]) else float((ys > 0.5).any())
         bag_list.append(Bag(X=X, y=y_bag))  # intra_bag_labels defaults to ones
 
     # Stratified split at the bag level
@@ -55,7 +57,7 @@ def load_musk_bags(
         idx, test_size=test_size, random_state=random_state, stratify=bag_labels
     )
     train_bags = [bag_list[i] for i in idx_tr]
-    test_bags  = [bag_list[i] for i in idx_te]
+    test_bags = [bag_list[i] for i in idx_te]
 
     # Standardize features
     if standardize:
@@ -65,8 +67,8 @@ def load_musk_bags(
     else:
         scaler = None
     train_bags = [Bag(X=scaler.transform(b.X), y=b.y) for b in train_bags]
-    test_bags  = [Bag(X=scaler.transform(b.X), y=b.y) for b in test_bags]
+    test_bags = [Bag(X=scaler.transform(b.X), y=b.y) for b in test_bags]
 
     train_ds = BagDataset(train_bags)
-    test_ds  = BagDataset(test_bags)
+    test_ds = BagDataset(test_bags)
     return train_ds, test_ds, scaler

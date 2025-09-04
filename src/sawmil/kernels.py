@@ -11,42 +11,54 @@ import logging
 log = logging.getLogger("sparse_mil.kernels")
 
 
-# ---------------- Utilities 
+# ---------------- Utilities
 def _sqeuclidean(X: np.ndarray, Y: np.ndarray) -> np.ndarray:
     Xn = (X * X).sum(1)[:, None]
     Yn = (Y * Y).sum(1)[None, :]
     return Xn + Yn - 2.0 * (X @ Y.T)
 
-# ---------------- Base class 
+# ---------------- Base class
+
+
 class BaseKernel(ABC):
     """Minimal kernel interface for the single-instance kernels: fit (optional) + __call__."""
+
     def fit(self, X: npt.NDArray[np.float64]) -> "BaseKernel":
         return self
+
     @abstractmethod
     def __call__(self, X: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         ...
 
-# ----------------  Single-instance kernels 
+# ----------------  Single-instance kernels
+
+
 @dataclass
 class Linear(BaseKernel):
     """Linear kernel: K(x, y) = x^T y"""
+
     def fit(self, X: npt.NDArray[np.float64]) -> "Linear":
         log.warning("Linear kernel has no parameters to fit.")
         return self
+
     def __call__(self, X: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]) -> np.ndarray:
         return X @ Y.T
+
 
 @dataclass
 class RBF(BaseKernel):
     """Radial Basis Function (RBF) kernel: K(x, y) = exp(-gamma * ||x - y||^2)"""
     gamma: Optional[float] = None  # if None, set to 1/d in fit()
+
     def fit(self, X: npt.NDArray[np.float64]) -> "RBF":
         if self.gamma is None:
             self.gamma = 1.0 / X.shape[1]
         return self
+
     def __call__(self, X: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]) -> np.ndarray:
         assert self.gamma is not None, "Call .fit(X) or set gamma."
         return np.exp(-self.gamma * _sqeuclidean(X, Y))
+
 
 @dataclass
 class Polynomial(BaseKernel):
@@ -54,38 +66,48 @@ class Polynomial(BaseKernel):
     degree: int = 3
     gamma: Optional[float] = None
     coef0: float = 0.0
+
     def fit(self, X: npt.NDArray[np.float64]) -> "Polynomial":
         if self.gamma is None:
             self.gamma = 1.0 / X.shape[1]
         return self
+
     def __call__(self, X: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]) -> np.ndarray:
         assert self.gamma is not None
         return (self.gamma * (X @ Y.T) + self.coef0) ** self.degree
+
 
 @dataclass
 class Sigmoid(BaseKernel):
     """Sigmoid kernel: K(x, y) = tanh(gamma * x^T y + coef0)"""
     gamma: Optional[float] = None
     coef0: float = 0.0
+
     def fit(self, X: npt.NDArray[np.float64]) -> "Sigmoid":
         if self.gamma is None:
             self.gamma = 1.0 / X.shape[1]
         return self
+
     def __call__(self, X: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]) -> np.ndarray:
         assert self.gamma is not None
         return np.tanh(self.gamma * (X @ Y.T) + self.coef0)
+
 
 @dataclass
 class Precomputed(BaseKernel):
     """Use when a Gram matrix is already built; ignores X,Y and returns K (shape checked by caller)."""
     K: np.ndarray
+
     def fit(self, X: npt.NDArray[np.float64]) -> "Precomputed":
         log.warning("Precomputed kernel has no parameters to fit.")
         return self
+
     def __call__(self, X: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]) -> np.ndarray:
         return self.K
 
-# ---------------- Combinators 
+# ---------------- Combinators
+
+
 @dataclass
 class Scale(BaseKernel):
     """Scale kernel: K(x, y) = a * k(x, y)"""
@@ -93,6 +115,7 @@ class Scale(BaseKernel):
     k: BaseKernel
     def fit(self, X): self.k.fit(X); return self
     def __call__(self, X, Y): return self.a * self.k(X, Y)
+
 
 @dataclass
 class Sum(BaseKernel):
@@ -102,6 +125,7 @@ class Sum(BaseKernel):
     def fit(self, X): self.k1.fit(X); self.k2.fit(X); return self
     def __call__(self, X, Y): return self.k1(X, Y) + self.k2(X, Y)
 
+
 @dataclass
 class Product(BaseKernel):
     """Product kernel: K(x, y) = k1(x, y) * k2(x, y)"""
@@ -110,25 +134,30 @@ class Product(BaseKernel):
     def fit(self, X): self.k1.fit(X); self.k2.fit(X); return self
     def __call__(self, X, Y): return self.k1(X, Y) * self.k2(X, Y)
 
+
 @dataclass
 class Normalize(BaseKernel):
     """Cosine-style normalization: Kxy / sqrt(Kxx * Kyy)."""
     k: BaseKernel
     eps: float = 1e-12
     def fit(self, X): self.k.fit(X); return self
+
     def __call__(self, X, Y):
         Kxy = self.k(X, Y)
         Kxx = np.sqrt(np.maximum(np.diag(self.k(X, X)), self.eps))[:, None]
         Kyy = np.sqrt(np.maximum(np.diag(self.k(Y, Y)), self.eps))[None, :]
         return Kxy / (Kxx * Kyy + self.eps)
 
-# ---------------- Registry & Resolver 
+
+# ---------------- Registry & Resolver
 # Used for the type checking
 KernelType = Union[
-    str,                                     # "linear", "rbf", "poly", "sigmoid", "precomputed"
+    # "linear", "rbf", "poly", "sigmoid", "precomputed"
+    str,
     BaseKernel,                               # already-constructed kernel
     Callable[[np.ndarray, np.ndarray], np.ndarray],  # raw callable k(X, Y)
 ]
+
 
 def get_kernel(spec: KernelType, **kwargs) -> BaseKernel:
     """
@@ -142,14 +171,16 @@ def get_kernel(spec: KernelType, **kwargs) -> BaseKernel:
     # plain callable? wrap so it behaves like a BaseKernel
     if callable(spec) and not isinstance(spec, str):
         class _CallableKernel(BaseKernel):
-            def __call__(self, X, Y): return np.asarray(spec(X, Y), dtype=float)
+            def __call__(self, X, Y): return np.asarray(
+                spec(X, Y), dtype=float)
         return _CallableKernel()
 
     # by name
     name = str(spec).lower()
     if name == "precomputed":
         if "K" not in kwargs:
-            raise ValueError("get_kernel('precomputed', K=...) requires the Gram matrix K.")
+            raise ValueError(
+                "get_kernel('precomputed', K=...) requires the Gram matrix K.")
         return Precomputed(np.asarray(kwargs["K"], dtype=float))
 
     registry: Dict[str, BaseKernel] = {
@@ -162,6 +193,7 @@ def get_kernel(spec: KernelType, **kwargs) -> BaseKernel:
         return registry[name]
 
     raise ValueError(f"Unknown kernel spec: {spec!r}")
+
 
 __all__ = [
     "BaseKernel",

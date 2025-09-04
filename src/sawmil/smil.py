@@ -40,13 +40,16 @@ class sMIL(NSK):
             return bl, ya
         if len(bags) > 0 and isinstance(bags[0], Bag):  # type: ignore[index]
             bl = list(bags)  # type: ignore[assignment]
-            ya = np.asarray([b.y for b in bl], dtype=float) if y is None else np.asarray(y, dtype=float).ravel()
+            ya = np.asarray([b.y for b in bl], dtype=float) if y is None else np.asarray(
+                y, dtype=float).ravel()
             if y is not None and ya.shape[0] != len(bl):
                 raise ValueError("Length of y must equal number of bags.")
             return bl, ya
         if y is None:
-            raise ValueError("When passing raw arrays for bags, you must also pass y.")
-        bl = [Bag(X=np.asarray(b, dtype=float), y=float(lbl)) for b, lbl in zip(bags, y)]
+            raise ValueError(
+                "When passing raw arrays for bags, you must also pass y.")
+        bl = [Bag(X=np.asarray(b, dtype=float), y=float(lbl))
+              for b, lbl in zip(bags, y)]
         return bl, np.asarray(y, dtype=float).ravel()
 
     @staticmethod
@@ -110,7 +113,8 @@ class sMIL(NSK):
         ub = np.concatenate([np.full(S_n, iC), np.full(B_p, bC)]).astype(float)
 
         # 4) solve
-        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub, verbose=self.verbose, solver=self.solver)
+        alpha, _ = quadprog(H, f, Aeq, beq, lb, ub,
+                            verbose=self.verbose, solver=self.solver)
         self.alpha_ = alpha
 
         # 5) SVs + intercept (dual)
@@ -119,7 +123,8 @@ class sMIL(NSK):
         self.support_vectors_ = [train_bags[i] for i in self.support_]
         self.dual_coef_ = (alpha[sv_mask] * Y[sv_mask]).reshape(1, -1)
 
-        caps = np.concatenate([np.full(S_n, iC), np.full(B_p, bC)]).astype(float)
+        caps = np.concatenate(
+            [np.full(S_n, iC), np.full(B_p, bC)]).astype(float)
         on_margin = (alpha > self.tol) & (alpha < (caps - self.tol))
         if not np.any(on_margin):
             on_margin = sv_mask
@@ -129,11 +134,13 @@ class sMIL(NSK):
         # 6) optional primal recovery (linearizable case: Linear + WeightedMean + p==1)
         if isinstance(bk, WeightedMeanBagKernel) and isinstance(bk.inst_kernel, Linear) and abs(bk.p - 1.0) < 1e-12:
             # φ(B) consistent with your NSK (uniform weights, chosen normalizer)
-            Z = np.stack([self._phi(b, normalizer=bk.normalizer) for b in train_bags], axis=0)  # (n, d)
+            Z = np.stack([self._phi(b, normalizer=bk.normalizer)
+                         for b in train_bags], axis=0)  # (n, d)
             self.coef_ = (self.alpha_ * self.y_) @ Z
             use = on_margin if np.any(on_margin) else sv_mask
             if np.any(use):
-                self.intercept_ = float(np.mean(self.y_[use] - Z[use] @ self.coef_))
+                self.intercept_ = float(
+                    np.mean(self.y_[use] - Z[use] @ self.coef_))
         else:
             self.coef_ = None  # keep dual intercept
 
