@@ -1,9 +1,9 @@
 # Sparse Multiple-Instance Learning in Python
 
-![PyPI - Version](https://img.shields.io/pypi/v/sawmil?style=flat-square)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/sawmil?style=flat-square)
-![PyPI - Status](https://img.shields.io/pypi/status/sawmil?style=flat-square)
-![GitHub License](https://img.shields.io/github/license/carlomarxdk/sawmil?style=flat-square)
+[![PyPI - Version](https://img.shields.io/pypi/v/sawmil?style=flat-square)](https://pypi.org/project/sawmil/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/sawmil?style=flat-square)](https://pypi.org/project/sawmil/)
+[![PyPI - Status](https://img.shields.io/pypi/status/sawmil?style=flat-square)](https://pypi.org/project/sawmil/)
+[![GitHub License](https://img.shields.io/github/license/carlomarxdk/sawmil?style=flat-square)](https://github.com/carlomarxdk/sawmil/blob/main/LICENSE)
 [![Docs](https://img.shields.io/badge/docs-latest-purple?logo=mkdocs&style=flat-square)](https://carlomarxdk.github.io/sawmil/)
 [![DOI](https://zenodo.org/badge/1046623935.svg)](https://doi.org/10.5281/zenodo.16990499)
 
