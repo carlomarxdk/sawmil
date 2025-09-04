@@ -53,6 +53,7 @@ def _validate_and_stabilize(
         ub: (n,) upper bound vector, e.g. all entries equal to C in soft-margin SVM.
         jitter: Small positive value added to the diagonal of H for numerical stability.
         stabilize: Whether to apply stabilization (symmetrization + jitter) to the problem.
+        
 
     Returns:
         Tuple of (H, f, Aeq, beq, lb, ub), all coerced to float64 arrays, 
@@ -128,7 +129,7 @@ def quadprog(
         lb: (n,) lower bound vector, usually 0
         ub: (n,) upper bound vector, usually C
         verbose: If True, print solver logs
-        solver_options: dict of backend-specific options. 
+        solver_params: dict of backend-specific options. 
             Examples:
                 - solver='gurobi': {'env': <gp.Env>, 'params': {'Method':2, 'Threads':1}}
                 - solver='osqp'  : {'setup': {...}, 'solve': {...}} or flat keys for setup
