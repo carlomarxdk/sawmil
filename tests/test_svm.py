@@ -10,8 +10,8 @@ try:
     from sawmil.svm import SVM
     from sawmil.kernels import Linear, RBF, Polynomial, Sigmoid
 except Exception:  # pragma: no cover
-    from src.sawmil.svm import SVM  # type: ignore
-    from src.sawmil.kernels import Linear, RBF, Polynomial, Sigmoid  # type: ignore
+    from ..src.sawmil.svm import SVM  # type: ignore
+    from ..src.sawmil.kernels import Linear, RBF, Polynomial, Sigmoid  # type: ignore
 
 
 # ----------------- helpers -----------------
