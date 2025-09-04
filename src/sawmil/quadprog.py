@@ -126,11 +126,12 @@ def quadprog(
         lb: (n,) lower bound vector, usually 0
         ub: (n,) upper bound vector, usually C
         verbose: If True, print solver logs
-    Extra:
-        solver_options: dict of backend-specific options. Examples:
-            - solver='gurobi': {'env': <gp.Env>, 'params': {'Method':2, 'Threads':1}}
-            - solver='osqp'  : {'setup': {...}, 'solve': {...}} or flat keys for setup
-            - solver='daqp'  : {'eps_abs': 1e-8, 'eps_rel': 1e-8, ...}
+        solver_options: dict of backend-specific options. 
+            Examples:
+                - solver='gurobi': {'env': <gp.Env>, 'params': {'Method':2, 'Threads':1}}
+                - solver='osqp'  : {'setup': {...}, 'solve': {...}} or flat keys for setup
+                - solver='daqp'  : {'eps_abs': 1e-8, 'eps_rel': 1e-8, ...}
+                
     Returns:
         α*: Optimal solution vector
         Objective: quadratic and linear parts of the optimum
