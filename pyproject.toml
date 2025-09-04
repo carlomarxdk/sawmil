@@ -12,7 +12,7 @@ license = { file = "LICENSE" }
 authors = [{ name = "Germans Savcisens" }, {name = "Tina Eliassi-Rad"}]
 keywords = ["svm", "multiple-instance-learning", "MIL", "kernels", "bag", "sparse", "sawmil"]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 3 - Alpha",
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
@@ -20,7 +20,6 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: 3.14",
   "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Scientific/Engineering :: Information Analysis",

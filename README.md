@@ -1,16 +1,11 @@
 # Sparse Multiple-Instance Learning in Python
 
-[![PyPI version](https://img.shields.io/pypi/v/sawmil.svg)](https://pypi.org/project/sawmil/)
-![Python versions](https://img.shields.io/pypi/pyversions/sawmil.svg)
-![Wheel](https://img.shields.io/pypi/wheel/sawmil.svg)
-![License](https://img.shields.io/pypi/l/sawmil.svg)
+![PyPI - Version](https://img.shields.io/pypi/v/sawmil?style=flat-square)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/sawmil?style=flat-square)
+![PyPI - Status](https://img.shields.io/pypi/status/sawmil?style=flat-square)
+![GitHub License](https://img.shields.io/github/license/carlomarxdk/sawmil?style=flat-square)
+[![Docs](https://img.shields.io/badge/docs-latest-purple?logo=mkdocs&style=flat-square)](https://carlomarxdk.github.io/sawmil/)
 [![DOI](https://zenodo.org/badge/1046623935.svg)](https://doi.org/10.5281/zenodo.16990499)
-[![Docs](https://img.shields.io/badge/docs-latest-purple?logo=mkdocs)](https://carlomarxdk.github.io/sawmil/)
-
-
-> [!Warning]
->
-> Note: It is an **alpha** version of the package.  This is an alpha version (see [Documentation](https://carlomarxdk.github.io/sawmil/)).
 
 MIL models based on the Support Vector Machines (NSK, sMIL, sAwMIL).
 Inspired by the outdated [misvm](https://github.com/garydoranjr/misvm) package.
