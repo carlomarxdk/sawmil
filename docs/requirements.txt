@@ -6,5 +6,4 @@ mkdocs-autorefs>=1.2
 mkdocs-jupyter>=0.25
 mkdocs-section-index>=0.3
 pymdown-extensions>=10.8
-# If your API pages import your package at build time, you can optionally install it:
-# -e .
+pymdownx.arithmatex
