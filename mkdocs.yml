@@ -1,5 +1,5 @@
-site_name: Python package for Multiple-Instance Support Vector Machines
-site_url: https://carlomarxdk.github.io/sawmil
+site_name: 'sAwMIL: Multiple Instance SVMs'
+site_url: https://sawmil.readthedocs.io/
 repo_url: https://github.com/carlomarxdk/sawmil
 repo_name: carlomarxdk/sawmil
 edit_uri: edit/main/docs/
