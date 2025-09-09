@@ -6,4 +6,4 @@ mkdocs-autorefs>=1.2
 mkdocs-jupyter>=0.25
 mkdocs-section-index>=0.3
 pymdown-extensions>=10.8
-pymdownx.arithmatex>=10.16.1
+pymdownx-arithmatex>=10.16.1
