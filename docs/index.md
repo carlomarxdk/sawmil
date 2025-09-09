@@ -24,7 +24,7 @@ To solve this problem, we can use [NSK][sawmil.nsk.NSK] or [sMIL][sawmil.smil.sM
 In some cases, each bag, along with the instances and a label, could contain a **intra-bag mask** that specifies which items are likely to contain the signal related to \(y\). In that case, we have a triplet of \( \langle \boldsymbol{X}_i, \boldsymbol{M}_i, y_i \rangle \), where
 
 \[
- \boldsymbol{M} = \{m_1, m_1,... m_{n_i}\}, \text{ where } m_j \in \{0,1\}.
+ \boldsymbol{M}_i = \{m_1, m_1,... m_{n_i}\}, \text{ where } m_j \in \{0,1\}.
 \]
 
 To solve this problem, one can use the [sAwMIL][sawmil.sawmil.sAwMIL] model.
