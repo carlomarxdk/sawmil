@@ -114,7 +114,7 @@ class sMIL(NSK):
 
         # 4) solve
         alpha, _ = quadprog(H, f, Aeq, beq, lb, ub,
-                            verbose=self.verbose, solver=self.solver)
+                            verbose=self.verbose, solver=self.solver, solver_params=self.solver_params)
         self.alpha_ = alpha
 
         # 5) SVs + intercept (dual)

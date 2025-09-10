@@ -1,12 +1,11 @@
 from __future__ import annotations
 import numpy as np
 from numpy import typing as npt
-from typing import Tuple, Optional, Any
+from typing import Tuple, Optional, Any, Dict
 from .objective import Objective
 import logging
 
-log = logging.getLogger("solvers._gurobi")
-
+log = logging.getLogger("solvers.gurobi")
 
 def quadprog_gurobi(
     H: npt.NDArray[np.float64],
@@ -16,7 +15,7 @@ def quadprog_gurobi(
     lb: npt.NDArray[np.float64],
     ub: npt.NDArray[np.float64],
     verbose: bool = False,
-    **params: Any,
+    **params: Optional[Dict],
 
 ) -> Tuple[npt.NDArray[np.float64], "Objective"]:
     """
@@ -34,7 +33,10 @@ def quadprog_gurobi(
         lb: (n,) lower bound vector, usually 0
         ub: (n,) upper bound vector, usually C
         verbose: If True, print solver logs
-
+        params: Additional parameters for Gurobi:
+          - 'env': dict of parameters for gurobipy.Env (e.g., {'LogFile': 'gurobi.log'})
+          - 'model': dict of parameters for gurobipy.Model.Params (e.g., {'Method': 2, 'Threads': 1})
+          - 'start': Optional initial solution vector (n,) for warm start
     Returns:
         α*: Optimal solution vector
         Objective: quadratic and linear parts of the optimum
@@ -46,12 +48,43 @@ def quadprog_gurobi(
         raise ImportError("gurobipy is required for solver='gurobi'") from exc
     if (Aeq is None) ^ (beq is None):
         raise ValueError("Aeq and beq must both be None or both be provided.")
-
+    
     n = H.shape[0]
-
-    model = gp.Model()
+    env_cfg = dict(params.get("env", {}))
+    env = gp.Env(**env_cfg) if env_cfg else None
+    if env_cfg:
+        log.debug(f"Gurobi Env params: {env_cfg}")
+    
+    model = gp.Model(env=env) if env else gp.Model()
     if not verbose:
         model.Params.OutputFlag = 0
+
+    # Collect model parameter overrides
+    model_params: dict[str, Any] = dict(params.get("model", {}))
+    # Also allow flat, non-namespaced params as a convenience
+    for k, v in params.items():
+        if k not in ("model", "env", "start"):
+            model_params.setdefault(k, v)
+            
+    if model_params:
+        log.debug(f"Gurobi Model.Params overrides: {model_params}")
+
+    # Apply model.Params.* safely
+    for k, v in model_params.items():
+        try:
+            setattr(model.Params, k, v)
+        except AttributeError as exc:
+            raise ValueError(f"Unknown Gurobi parameter: '{k}'") from exc
+
+
+    # Optional warm start
+    if "start" in params and params["start"] is not None:
+        log.info("Using provided 'start' for warm start")
+        start = np.asarray(params["start"], dtype=float)
+        if start.shape != (n,):
+            raise ValueError(f"start must have shape ({n},), got {start.shape}")
+        x.Start = start
+
 
     x = model.addMVar(n, lb=lb, ub=ub, name="alpha")
     obj = 0.5 * (x @ H @ x) + f @ x

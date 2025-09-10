@@ -27,8 +27,6 @@ class NSK(SVM):
         # Bag kernel settings:
         normalizer: Literal["none", "average", "featurespace"] = "none",
         p: float = 1.0,
-        use_intra_labels: bool = False,
-        fast_linear: bool = True,
         # Solver / SVM settings:
         scale_C: bool = True,
         tol: float = 1e-8,
@@ -44,8 +42,6 @@ class NSK(SVM):
             solver: Solver to use (default: "gurobi").
             normalizer: Bag kernel normalization method (default: "none").
             p: Parameter for bag kernel (default: 1.0).
-            use_intra_labels: Whether to use intra-bag labels (default: False).
-            fast_linear: Whether to use fast linear approximation (default: True).
             scale_C: Whether to scale C (default: True).
             tol: Tolerance for stopping criteria (default: 1e-8).
             verbose: Whether to print verbose output (default: False).
@@ -63,10 +59,8 @@ class NSK(SVM):
         # Bag Kernel
         self.normalizer = normalizer
         self.p = p
-        self.use_intra_labels = use_intra_labels
-        self.fast_linear = fast_linear
         self.bag_kernel = make_bag_kernel(inst_kernel=self.kernel, normalizer=self.normalizer,
-                                          p=self.p, use_intra_labels=self.use_intra_labels, fast_linear=self.fast_linear)
+                                          p=self.p)
         self.solver_params = dict(solver_params or {})
 
         # Fitted state
@@ -92,7 +86,6 @@ class NSK(SVM):
             if y is not None and y_arr.shape[0] != len(blist):
                 raise ValueError("Length of y must equal number of bags.")
             return blist, y_arr
-        # Raw arrays + y (bags without intra labels -> all uniform weights)
         if y is None:
             raise ValueError(
                 "When passing raw arrays for bags, you must also pass y.")
@@ -111,9 +104,7 @@ class NSK(SVM):
         self.bag_kernel = make_bag_kernel(
             inst_kernel=inst_k,
             normalizer=self.normalizer,
-            p=self.p,
-            use_intra_labels=self.use_intra_labels,
-            fast_linear=self.fast_linear,
+            p=self.p
         )
         # Fit once to allow instance kernel to set defaults (e.g., gamma)
         # (bag_k.fit looks at the first non-empty bag for dimensionality)
@@ -211,7 +202,7 @@ class NSK(SVM):
     def _phi(self, bag: Bag, *, normalizer: str) -> np.ndarray:
         """
         Bag embedding φ(B) in ℝ^d matching the bag kernel:
-          - weights: uniform if use_intra=False, else normalized mask
+          - weights: uniform
           - normalizer:
               "none"         -> φ = mean
               "average"      -> φ = mean / count   (count = n or sum(mask))

@@ -21,6 +21,10 @@ except Exception:  # DAQP not installed
 
 log = logging.getLogger("quadprog")
 
+def _check_param(d, key):
+    if key not in d:
+        raise KeyError(f"Missing required parameter: '{key}'")
+    return d[key]
 
 def _validate_and_stabilize(
     H: npt.NDArray[np.float64],
@@ -140,7 +144,10 @@ def quadprog(
         Objective: quadratic and linear parts of the optimum
     """
     H, f, Aeq, beq, lb, ub = _validate_and_stabilize(H, f, Aeq, beq, lb, ub)
+
     params = dict(solver_params or {})
+    if params:
+        print(f"Using solver '{solver}' with params: {params}")
 
     if solver == "gurobi":
         if _qp_gurobi is None:

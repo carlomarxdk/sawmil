@@ -13,7 +13,7 @@ class Bag:
     """A bag of instances with a bag-level label and per-instance (0/1) flags."""
     X: npt.NDArray[np.float64]            # shape (n_i, d)
     y: Label                              # bag label (e.g., 0/1 or -1/+1)
-    intra_bag_label: Optional[npt.NDArray[np.float64]
+    intra_bag_mask: Optional[npt.NDArray[np.float64]
                               ] = None  # shape (n_i,), 0/1
 
     def __post_init__(self):
@@ -21,15 +21,15 @@ class Bag:
         if self.X.ndim != 2:
             raise ValueError("Bag.X must be 2D (n_i, d).")
         n_i = self.X.shape[0]
-        if self.intra_bag_label is None:
+        if self.intra_bag_mask is None:
             # default: all ones
-            self.intra_bag_label = np.ones(n_i, dtype=float)
+            self.intra_bag_mask = np.ones(n_i, dtype=float)
         else:
-            self.intra_bag_label = np.asarray(
-                self.intra_bag_label, dtype=float).ravel()
-            if self.intra_bag_label.shape[0] != n_i:
+            self.intra_bag_mask = np.asarray(
+                self.intra_bag_mask, dtype=float).ravel()
+            if self.intra_bag_mask.shape[0] != n_i:
                 raise ValueError(
-                    "intra_bag_label length must match number of instances.")
+                    "intra_bag_mask length must match number of instances.")
 
     @property
     def n(self) -> int:
@@ -43,15 +43,15 @@ class Bag:
 
     @property
     def mask(self) -> npt.NDArray[np.float64]:
-        """Intra-bag label mask."""
-        return np.clip(self.intra_bag_label, 0.0, 1.0)
+        """Intra-bag mask."""
+        return np.clip(self.intra_bag_mask, 0.0, 1.0)
 
     def positives(self) -> npt.NDArray[np.int64]:
-        """Indices of instances with intra_bag_label == 1."""
+        """Indices of instances with intra_bag_mask == 1."""
         return np.flatnonzero(self.mask >= 0.5)
 
     def negatives(self) -> npt.NDArray[np.int64]:
-        """Indices of instances with intra_bag_label == 0."""
+        """Indices of instances with intra_bag_mask == 0."""
         return np.flatnonzero(self.mask < 0.5)
 
 
@@ -64,7 +64,7 @@ class BagDataset:
     def from_arrays(
         bags: Sequence[np.ndarray],
         y: Sequence[float],
-        intra_bag_labels: Sequence[np.ndarray] | None = None
+        intra_bag_mask: Sequence[np.ndarray] | None = None
     ) -> "BagDataset":
         """Create a :class:`BagDataset` from raw numpy arrays.
 
@@ -75,7 +75,7 @@ class BagDataset:
             bag with shape ``(n_i, d)``.
         y:
             Bag-level labels corresponding to each element of ``bags``.
-        intra_bag_labels:
+        intra_bag_masks:
             Optional sequence of 1D arrays with per-instance ``0/1`` flags. If
             omitted, all instances in a bag are considered positive.
 
@@ -85,14 +85,14 @@ class BagDataset:
             Dataset composed of :class:`Bag` objects built from the provided
             arrays.
         """
-        if intra_bag_labels is None:
-            intra_bag_labels = [None] * len(bags)
-        if len(bags) != len(y) or len(bags) != len(intra_bag_labels):
+        if intra_bag_masks is None:
+            intra_bag_masks = [None] * len(bags)
+        if len(bags) != len(y) or len(bags) != len(intra_bag_masks):
             raise ValueError(
-                "bags, y, intra_bag_labels must have same length.")
+                "bags, y, intra_bag_masks must have same length.")
         return BagDataset([
-            Bag(X=b, y=float(lbl), intra_bag_label=ibl)
-            for b, lbl, ibl in zip(bags, y, intra_bag_labels)
+            Bag(X=b, y=float(lbl), intra_bag_mask=ibl)
+            for b, lbl, ibl in zip(bags, y, intra_bag_masks)
         ])
 
     def split_by_label(self) -> tuple[list[Bag], list[Bag]]:
@@ -114,7 +114,7 @@ class BagDataset:
 
     def positive_instances(self) -> tuple[np.ndarray, np.ndarray]:
         """
-        Returns instances from positive bags with intra_bag_label == 1.
+        Returns instances from positive bags with intra_bag_mask == 1.
         Returns:
             X_pos: (N, d)
             bag_index: (N,) indices into self.bags (original positions)
@@ -136,7 +136,7 @@ class BagDataset:
         """
         Returns instances from:
         - all negative bags (all instances),
-        - plus from positive bags where intra_bag_label == 0.
+        - plus from positive bags where intra_bag_mask == 0.
         Returns:
             X_neg: (M, d)
             bag_index: (M,) indices into self.bags (original positions)
@@ -149,7 +149,7 @@ class BagDataset:
                     Xs.append(b.X)
                     bag_idx.extend([i] * b.X.shape[0])
             else:
-                # positive bag: only intra == 0
+                # positive bag: only intra_mask == 0
                 mask = b.mask < 0.5
                 if np.any(mask):
                     Xs.append(b.X[mask])

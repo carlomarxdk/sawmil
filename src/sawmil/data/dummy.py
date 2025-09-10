@@ -146,7 +146,7 @@ def generate_dummy_bags(
         X = X[perm]
         intra = intra[perm]
 
-        bags.append(Bag(X=X, y=1.0, intra_bag_label=intra))
+        bags.append(Bag(X=X, y=1.0, intra_bag_mask=intra))
 
     # ---- Negative bags ----
     for _ in range(n_neg):
@@ -172,6 +172,6 @@ def generate_dummy_bags(
         X = X[perm]
         intra = intra[perm]
 
-        bags.append(Bag(X=X, y=0.0, intra_bag_label=intra))
+        bags.append(Bag(X=X, y=0.0, intra_bag_mask=intra))
 
     return BagDataset(bags)

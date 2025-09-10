@@ -44,16 +44,11 @@ class WeightedMeanBagKernel(BaseBagKernel):
       - "average"    -> norm(B)=sum(mask) (fallback to bag size)
       - "featurespace" -> norm(B)=sqrt(w^T k(X,X) w)
                           (fast for Linear via ||weighted_mean||)
-
-    By default (use_intra_labels=False):
-      - w_i are UNIFORM weights (1/n_i), i.e., intra labels are IGNORED.
-      - normalizer defaults to "none" (no extra scaling).
     """
     inst_kernel: BaseKernel
     normalizer: _NormalizerName = "average"
     p: float = 1.0
-    use_intra_labels: bool = False
-    fast_linear: bool = True
+
 
     def fit(self, bags: List[Bag]) -> "WeightedMeanBagKernel":
         # If the instance kernel needs defaults (e.g. gamma), fit it on a few instances.
@@ -69,37 +64,21 @@ class WeightedMeanBagKernel(BaseBagKernel):
         if b.n == 0:
             return np.zeros((0,), dtype=float)
 
-        if not self.use_intra_labels:
-            # 👇 KEY CHANGE:
-            # If "average" normalizer is requested, use UNNORMALIZED weights (all ones)
-            # so the numerator is a SUM; the denominator will divide by counts -> net MEAN.
-            if self.normalizer == "average":
-                return np.ones(b.n, dtype=float)
-            # otherwise, keep the plain mean
-            return np.full(b.n, 1.0 / b.n, dtype=float)
+        if self.normalizer == "average":
+            return np.ones(b.n, dtype=float)
+        # otherwise, keep the plain mean
+        return np.full(b.n, 1.0 / b.n, dtype=float)
 
-        # use intra-bag mask (normalized to sum=1; fallback to uniform)
-        w = b.mask.astype(float)
-        s = float(w.sum())
-        if s <= 0.0:
-            return np.full(b.n, 1.0 / b.n, dtype=float)
-        return w / s
 
     def _norms(self, bags: List[Bag]) -> npt.NDArray[np.float64]:
         if self.normalizer == "none":
             return np.ones(len(bags), dtype=float)
 
         if self.normalizer == "average":
-            # 👇 CONSISTENT with _weights above:
-            # - no intra labels: denominator = bag size
-            # - with intra labels: denominator = effective positive count
-            if not self.use_intra_labels:
-                return np.array([max(b.n, 1) for b in bags], dtype=float)
-            else:
-                return np.array([max(float(b.mask.sum()), 1.0) for b in bags], dtype=float)
+            return np.array([max(b.n, 1) for b in bags], dtype=float)
 
         # featurespace
-        if self.fast_linear and isinstance(self.inst_kernel, Linear):
+        if isinstance(self.inst_kernel, Linear):
             means = np.stack(
                 [self._weighted_mean(b) if b.n else np.zeros((bags[0].d,), dtype=float)
                  for b in bags],
@@ -122,7 +101,7 @@ class WeightedMeanBagKernel(BaseBagKernel):
             return 0.0
         wi = self._weights(Bi)
         wj = self._weights(Bj)
-        if self.fast_linear and isinstance(self.inst_kernel, Linear):
+        if isinstance(self.inst_kernel, Linear):
             mi = (wi[None, :] @ Bi.X).ravel()
             mj = (wj[None, :] @ Bj.X).ravel()
             val = float(mi @ mj)
@@ -169,15 +148,20 @@ def make_bag_kernel(
     *,
     normalizer: _NormalizerName = "none",
     p: float = 1.0,
-    use_intra_labels: bool = False,
-    fast_linear: bool = True,
 ) -> WeightedMeanBagKernel:
+    '''Helper to create a WeightedMeanBagKernel with the given instance kernel and parameters.
+    Args:
+      inst_kernel: BaseKernel
+        The instance-level kernel to use (will be fitted on first bag with instances).
+      normalizer: {"none", "average", "featurespace"}
+        The bag kernel normalizer (default is "none").
+      p: float
+        Exponent for the weighted mean kernel (default is 1.0, i.e. no exponentiation).
+    '''
     return WeightedMeanBagKernel(
         inst_kernel=inst_kernel,
         normalizer=normalizer,
         p=p,
-        use_intra_labels=use_intra_labels,
-        fast_linear=fast_linear,
     )
 
 

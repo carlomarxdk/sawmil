@@ -20,11 +20,9 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
     # bag-kernel options used inside sMIL (stage 1)
     normalizer: str = "none"   # recommend "none" for sMIL
     p: float = 1.0
-    fast_linear: bool = True
 
     # sMIL-specific scaling of C by block sizes
-    smil_scale_C: bool = True  # <-- renamed; avoids duplicate field name
-
+    scale_C: bool = True 
     tol: float = 1e-8
     verbose: bool = False
 
@@ -48,28 +46,28 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
     def _coerce_bags(
         bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray],
         y: Optional[npt.NDArray[np.float64]] = None,
-        intra_bag_labels: Optional[Sequence[np.ndarray]] = None,
+        intra_bag_mask: Optional[Sequence[np.ndarray]] = None,
     ) -> List[Bag]:
         if isinstance(bags, BagDataset):
             return list(bags.bags)
         if len(bags) > 0 and isinstance(bags[0], Bag):  # type: ignore[index]
             return list(bags)  # type: ignore[return-value]
-        # Raw arrays path: require y and intra_bag_labels
-        if y is None or intra_bag_labels is None:
+        # Raw arrays path: require y and intra_bag_mask
+        if y is None or intra_bag_mask is None:
             raise ValueError(
-                "For raw arrays, pass both y and intra_bag_labels (one 1D mask per bag).")
+                "For raw arrays, pass both y and intra_bag_mask (one 1D mask per bag).")
         # type: ignore[arg-type]
-        if not (len(bags) == len(y) == len(intra_bag_labels)):
+        if not (len(bags) == len(y) == len(intra_bag_mask)):
             raise ValueError(
-                "bags, y, and intra_bag_labels must have the same length.")
+                "bags, y, and intra_bag_mask must have the same length.")
         out: List[Bag] = []
         # type: ignore[assignment]
-        for X_i, y_i, m_i in zip(bags, y, intra_bag_labels):
+        for X_i, y_i, m_i in zip(bags, y, intra_bag_mask):
             out.append(
                 Bag(
                     X=np.asarray(X_i, dtype=float),
                     y=float(y_i),
-                    intra_bag_label=np.asarray(
+                    intra_bag_mask=np.asarray(
                         m_i, dtype=float).ravel(),  # <-- singular name
                 )
             )
@@ -98,11 +96,11 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
         self,
         bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray],
         y: Optional[npt.NDArray[np.float64]] = None,
-        intra_bag_labels: Optional[Sequence[np.ndarray]] = None,
+        intra_bag_mask: Optional[Sequence[np.ndarray]] = None,
     ) -> "sAwMIL":
         '''Fit the model to the training data.'''
         # 1) coerce input
-        blist = self._coerce_bags(bags, y, intra_bag_labels)
+        blist = self._coerce_bags(bags, y, intra_bag_mask)
         if not blist:
             raise ValueError("No bags provided.")
 
@@ -112,9 +110,7 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
             kernel=self.kernel,
             normalizer=self.normalizer,
             p=self.p,
-            use_intra_labels=True,            # you said you want to enforce using intra labels
-            fast_linear=self.fast_linear,
-            scale_C=self.smil_scale_C,        # <-- use the sMIL-specific flag
+            scale_C=self.scale_C,        # <-- use the sMIL-specific flag
             tol=self.tol,
             verbose=self.verbose,
         )
