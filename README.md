@@ -12,24 +12,24 @@
 In **Single-Instance Learning** (SIL), the dataset consists of pairs of an instance and a label:
 
 $$
-\langle \boldsymbol{x}_i, y_i \rangle \text{ , where } \boldsymbol{x}_i \in \mathbb{R}^{d} \text{ and } y_i \in \mathcal{Y}.
+\langle \mathbf{x}_i, y_i \rangle \text{ , where } \mathbf{x}_i \in \mathbb{R}^{d} \text{ and } y_i \in \mathcal{Y}.
 $$
 
-In binary settings, the label is \( y \in \{0,1\} \).
+In binary settings, the label is $y \in \{0,1\}$.
 To solve this problem, we can use a standard [SVM](https://sawmil.readthedocs.io/en/latest/models/svm/) model.
 
 In **Multiple-Instance Learning** (MIL), the dataset consists of *bags* of instances paired with a single bag-level label:
 
 $$
-\langle \boldsymbol{X}_i, y_i \rangle \text{ , where } \boldsymbol{X}_i = \{ \boldsymbol{x}_{1}, \boldsymbol{x}_{2}, ..., \boldsymbol{x}_{n_i} \}, \boldsymbol{x}_j \in \mathbb{R}^{d} \text{ and } y_i \in \mathcal{Y}.
+\langle \mathbf{X}_i, y_i \rangle \text{ , where } \mathbf{X}_i = \{ \mathbf{x}_{1}, \mathbf{x}_{2}, ..., \mathbf{x}_{n_i} \}, \mathbf{x}_j \in \mathbb{R}^{d} \text{ and } y_i \in \mathcal{Y}.
 $$
 
 To solve this problem, we can use [NSK](https://sawmil.readthedocs.io/en/latest/models/nsk/) or [sMIL](https://sawmil.readthedocs.io/en/latest/models/sMIL/) models.
 
-In some cases, each bag, along with the instances and a label, could contain a **intra-bag mask** that specifies which items are likely to contain the signal related to $y$. In that case, we have a triplet of $\langle \boldsymbol{X}_i, \boldsymbol{M}_i, y_i \rangle$, where
+In some cases, each bag, along with the instances and a label, could contain a **intra-bag mask** that specifies which items are likely to contain the signal related to $y$. In that case, we have a triplet of $\langle \mathbf{X}_i, \mathbf{M}_i, y_i \rangle$, where
 
 $$
- \boldsymbol{M}_i = \{m_1, m_1,... m_{n_i}\}, \text{ where } m_j \in \{0,1\}.
+ \mathbf{M}_i = \{m_1, m_1,... m_{n_i}\}, \text{ where } m_j \in \{0,1\}.
 $$
 
 To solve this problem, one can use the [sAwMIL](https://sawmil.readthedocs.io/en/latest/models/sAwMIL/) model.
