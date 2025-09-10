@@ -1,4 +1,10 @@
+---
+hide:
+  - toc
+---
+
 # Welcome to sawmil's documentation!
+
 
 **This package is in the alpha stage of testing.**
 
