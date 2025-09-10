@@ -26,20 +26,26 @@ def quadprog_gurobi(
                    lb ≤ α ≤ ub
 
     Args:
-        H: (n, n) Hessian matrix for the quadratic term in 0.5 * αᵀ H α.
-        f: (n,) linear term vector in fᵀ α. For SVMs, usually -1 for each component.
-        Aeq: (m, n) equality constraint matrix, usually yᵀ
-        beq: (m,) equality constraint rhs, usually 0
-        lb: (n,) lower bound vector, usually 0
-        ub: (n,) upper bound vector, usually C
-        verbose: If True, print solver logs
-        params: Additional parameters for Gurobi:
-          - 'env': dict of parameters for gurobipy.Env (e.g., {'LogFile': 'gurobi.log'})
-          - 'model': dict of parameters for gurobipy.Model.Params (e.g., {'Method': 2, 'Threads': 1})
-          - 'start': Optional initial solution vector (n,) for warm start
+        H (np.ndarray): (n, n) Hessian matrix for the quadratic term in 0.5 * αᵀ H α.
+        f (np.ndarray): (n,) linear term vector in fᵀ α. For SVMs, usually -1 for each component.
+        Aeq (np.ndarray | None): (m, n) equality constraint matrix, usually yᵀ. Must be provided iff ``beq`` is provided.
+        beq (np.ndarray | None): (m,) equality constraint right-hand side, usually 0. Must be provided iff ``Aeq`` is provided.
+        lb (np.ndarray): (n,) lower bound vector, usually 0.
+        ub (np.ndarray): (n,) upper bound vector, usually C.
+        verbose (bool): If True, print solver logs.
+        params (Any): Additional keyword parameters passed via ``**params``.
+            Expected keys:
+            * ``env`` (dict): Parameters for ``gurobipy.Env`` (e.g., ``{"LogFile": "gurobi.log"}``).
+            * ``model`` (dict): Parameters for ``gurobipy.Model.Params`` (e.g., ``{"Method": 2, "Threads": 1}``).
+            * ``start`` (np.ndarray | None): Optional initial solution vector of shape (n,) for warm start.
+
     Returns:
-        α*: Optimal solution vector
-        Objective: quadratic and linear parts of the optimum
+        x (np.ndarray): Optimal solution vector α* of shape (n,).
+        objective (Objective): Quadratic and linear parts of the optimum.
+
+    Raises:
+        ImportError: If ``gurobipy`` is not installed.
+        ValueError: If only one of ``Aeq`` or ``beq`` is provided, or if a warm start has the wrong shape.
     """
 
     try:

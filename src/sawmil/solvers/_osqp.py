@@ -20,24 +20,54 @@ def quadprog_osqp(
     **params: Any,
 ) -> Tuple[npt.NDArray[np.float64], "Objective"]:
     """
-    Solve the quadratic program using OSQP:
+    Solve a convex quadratic program using the OSQP solver.
 
-        minimize   0.5 * αᵀ H α + fᵀ α
-        subject to Aeq α = beq
-                   lb ≤ α ≤ ub
+    The problem has the form:
 
-    Args:
-        H: (n, n) Hessian matrix for the quadratic term in 0.5 * αᵀ H α. For SVM duals, this is typically (y yᵀ) ⊙ K where K is the kernel matrix.
-        f: (n,) linear term vector in fᵀ α. For SVMs, usually -1 for each component.
-        Aeq: (m, n) optional equality constraint matrix, e.g. yᵀ for SVM bias constraint.
-        beq: (m,) optional right-hand side of equality constraint, usually 0.
-        lb: (n,) lower bound vector, e.g. all zeros in standard SVM dual.
-        ub: (n,) upper bound vector, e.g. all entries equal to C in soft-margin SVM.
-        verbose: If True, print solver logs
+        minimize    0.5 * αᵀ H α + fᵀ α
+        subject to  Aeq α = beq
+                    lb ≤ α ≤ ub
 
-    Returns:
-        α*: Optimal solution vector
-        Objective: quadratic and linear parts of the optimum
+    This wrapper builds the constraint matrix and passes options to OSQP's
+    `setup()` and `solve()` routines.
+
+    Parameters
+    ----------
+    H : (n, n) ndarray of float
+        Hessian matrix for the quadratic term in 0.5 * αᵀ H α.
+        For SVM duals, this is typically (y yᵀ) ⊙ K where K is the kernel matrix.
+    f : (n,) ndarray of float
+        Linear term vector in fᵀ α. For SVMs, usually -1 for each component.
+    Aeq : (m, n) ndarray of float, optional
+        Equality constraint matrix, e.g. yᵀ for the SVM bias constraint.
+    beq : (m,) ndarray of float, optional
+        Right-hand side of the equality constraint, usually 0.
+    lb : (n,) ndarray of float
+        Lower bounds on the variables. For standard SVM duals, usually all zeros.
+    ub : (n,) ndarray of float
+        Upper bounds on the variables. For soft-margin SVM duals, usually all entries equal to C.
+    verbose : bool, default=False
+        If True, print solver logs.
+    **params : dict
+        Additional OSQP options. Keys can be:
+        - ``setup`` (dict): passed to ``OSQP.setup()`` (e.g. ``{"eps_abs": 1e-6}``).
+        - ``solve`` (dict): passed to ``OSQP.solve()`` (e.g. ``{"warm_start": True}``).
+        - Flat keyword args: if neither ``setup`` nor ``solve`` is provided,
+          non-nested keys are treated as setup options.
+
+    Returns
+    -------
+    x : (n,) ndarray of float
+        Optimal solution vector α*.
+    objective : Objective
+        Object containing the quadratic and linear parts of the optimum value.
+
+    Raises
+    ------
+    ImportError
+        If required dependencies (``scipy`` or ``osqp``) are not installed.
+    RuntimeError
+        If OSQP terminates with a status other than solved or solved_inaccurate.
     """
     # Lazy, guarded imports so the module can be imported without OSQP installed.
     try:
