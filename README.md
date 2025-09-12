@@ -1,4 +1,4 @@
-# Sparse Multiple-Instance Learning in Python
+# Multiple-Instance Support Vector Machines in Python
 
 [![PyPI - Version](https://img.shields.io/pypi/v/sawmil?style=flat-square)](https://pypi.org/project/sawmil/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/sawmil?style=flat-square)](https://pypi.org/project/sawmil/)
