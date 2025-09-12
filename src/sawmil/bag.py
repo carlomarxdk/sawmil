@@ -36,7 +36,7 @@ class Bag:
     X: npt.NDArray[np.float64]            # shape (n_i, d)
     y: Label                              # bag label (e.g., 0/1 or -1/+1)
     intra_bag_mask: Optional[npt.NDArray[np.float64]
-                              ] = None  # shape (n_i,), 0/1
+                             ] = None  # shape (n_i,), 0/1
 
     def __post_init__(self):
         """Validate and normalize input arrays.

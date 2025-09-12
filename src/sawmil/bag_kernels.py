@@ -14,11 +14,13 @@ _NormalizerName = Literal["none", "average", "featurespace"]
 
 # ---------- Base Multiple-instance Kernel
 
+
 def _bag_slices(bags):
     starts = np.fromiter((0,), int)
     for b in bags:
         starts = np.append(starts, starts[-1] + b.n)
     return starts  # length = n_bags+1
+
 
 def _weights_for_normalizer(bags, normalizer: str):
     out, lens = [], []
@@ -28,21 +30,30 @@ def _weights_for_normalizer(bags, normalizer: str):
         if n == 0:
             out.append(np.zeros((0,), float))
         elif normalizer == "average":
-            out.append(np.ones(n, float))        # “sum” weights; divide by counts later
+            # “sum” weights; divide by counts later
+            out.append(np.ones(n, float))
         else:
             out.append(np.full(n, 1.0 / n, float))  # “mean” weights
     w = np.concatenate(out) if out else np.zeros((0,), float)
     return w, np.array(lens, int)
+
 
 def _segment_reduce_rows(K, w_rows, starts):
     # Multiply each row by its weight, then sum segments -> (n_bags_X, n_inst_Y)
     KR = K * w_rows[:, None]
     return np.add.reduceat(KR, starts[:-1], axis=0)
 
+
 def _segment_reduce_cols(M, w_cols, starts):
     # Multiply each column by its weight, then sum segments -> (n_bags_X, n_bags_Y)
     MC = M * w_cols[None, :]
     return np.add.reduceat(MC, starts[:-1], axis=1)
+
+
+def _effective_count(b: Bag) -> float:
+    '''Counts the effective instances in a bag (relevant only if classifier or kernel uses the intra_bag_labels)'''
+    s = float(b.mask.sum())
+    return s if s > 0.0 else max(1.0, float(b.n))
 
 
 class BaseBagKernel(ABC):
@@ -54,13 +65,6 @@ class BaseBagKernel(ABC):
     @abstractmethod
     def __call__(self, bags_X: List[Bag], bags_Y: List[Bag]) -> npt.NDArray[np.float64]:
         ...
-
-
-def _effective_count(b: Bag) -> float:
-    '''Counts the effective instances in a bag (relevant only if classifier or kernel uses the intra_bag_labels)'''
-    s = float(b.mask.sum())
-    return s if s > 0.0 else max(1.0, float(b.n))
-
 
 @dataclass
 class WeightedMeanBagKernel(BaseBagKernel):
@@ -104,7 +108,6 @@ class WeightedMeanBagKernel(BaseBagKernel):
     normalizer: _NormalizerName = "average"
     p: float = 1.0
 
-
     def fit(self, bags: List[Bag]) -> "WeightedMeanBagKernel":
         """Fit the underlying instance kernel if it needs data-dependent defaults.
 
@@ -123,7 +126,8 @@ class WeightedMeanBagKernel(BaseBagKernel):
         nX, nY = len(bags_X), len(bags_Y)
 
         X_stack = np.vstack([b.X for b in bags_X if b.n])
-        Y_stack = X_stack if (bags_X is bags_Y) else np.vstack([b.X for b in bags_Y if b.n])
+        Y_stack = X_stack if (bags_X is bags_Y) else np.vstack(
+            [b.X for b in bags_Y if b.n])
 
         # Build K_inst once
         K_inst = self.inst_kernel(X_stack, Y_stack)  # (N_X, N_Y)
@@ -135,18 +139,22 @@ class WeightedMeanBagKernel(BaseBagKernel):
         startsY = np.concatenate(([0], np.cumsum(lensY)))
 
         # Two-stage aggregation (no SciPy sparse)
-        SXK   = _segment_reduce_rows(K_inst, wX_flat, startsX)   # (n_bags_X, N_Y)
-        K_bag = _segment_reduce_cols(SXK, wY_flat, startsY)      # (n_bags_X, n_bags_Y)
+        SXK = _segment_reduce_rows(
+            K_inst, wX_flat, startsX)   # (n_bags_X, N_Y)
+        K_bag = _segment_reduce_cols(
+            SXK, wY_flat, startsY)      # (n_bags_X, n_bags_Y)
 
         # ---- norms
         if self.normalizer == "none":
             norms_X = np.ones(nX, dtype=float)
-            norms_Y = norms_X if (bags_X is bags_Y) else np.ones(nY, dtype=float)
+            norms_Y = norms_X if (
+                bags_X is bags_Y) else np.ones(nY, dtype=float)
         elif self.normalizer == "average":
             norms_X = np.array([max(b.n, 1) for b in bags_X], dtype=float)
-            norms_Y = norms_X if (bags_X is bags_Y) else np.array([max(b.n, 1) for b in bags_Y], dtype=float)
-            
-                # ---- apply exponent p and normalization
+            norms_Y = norms_X if (bags_X is bags_Y) else np.array(
+                [max(b.n, 1) for b in bags_Y], dtype=float)
+
+            # ---- apply exponent p and normalization
         if self.p != 1.0:
             np.maximum(K_bag, 0.0, out=K_bag)  # keep PSD-ish
             K_bag = np.power(K_bag, self.p, dtype=float)
@@ -155,8 +163,6 @@ class WeightedMeanBagKernel(BaseBagKernel):
         np.divide(K_bag, denom, out=K_bag, where=(denom > 0))
 
         return K_bag
-
-
 
     def __call__(self, bags_X: list[Bag], bags_Y: list[Bag]) -> npt.NDArray[np.float64]:
         """Compute the bag-by-bag Gram matrix.
@@ -171,7 +177,6 @@ class WeightedMeanBagKernel(BaseBagKernel):
             described in the class docstring.
         """
 
-
         nX, nY = len(bags_X), len(bags_Y)
 
         # Handle empty bag lists quickly
@@ -181,17 +186,19 @@ class WeightedMeanBagKernel(BaseBagKernel):
         # ---- build stacked instance matrices
         d = bags_X[0].d if nX else 0
 
-        X_stack = np.vstack([b.X if b.n else np.zeros((0, d), float) for b in bags_X])
+        X_stack = np.vstack(
+            [b.X if b.n else np.zeros((0, d), float) for b in bags_X])
         Y_stack = X_stack if (bags_X is bags_Y) else \
-                np.vstack([b.X if b.n else np.zeros((0, d), float) for b in bags_Y])
+            np.vstack([b.X if b.n else np.zeros((0, d), float)
+                      for b in bags_Y])
 
         # ---- per-instance weights per bag
-        # 
+        #
         def w_vec(b: Bag) -> np.ndarray:
             """Weight vector for a bag b.
             Returns:
                 A 1D array of shape (b.n,) with the weight for each instance.
-                
+
             Notes
             -----
             - "average": use 1 per instance (sum); divide by |Bi||Bj| later.
@@ -202,8 +209,6 @@ class WeightedMeanBagKernel(BaseBagKernel):
             if self.normalizer == "average":
                 return np.full(b.n, 1.0 / b.n, dtype=float)  # mean
             return np.ones(b.n, dtype=float)     # sum= n
-
-
 
         wX = [w_vec(b) for b in bags_X]
         wY = wX if (bags_X is bags_Y) else [w_vec(b) for b in bags_Y]
@@ -240,10 +245,12 @@ class WeightedMeanBagKernel(BaseBagKernel):
         # ---- norms
         if self.normalizer == "none":
             norms_X = np.ones(nX, dtype=float)
-            norms_Y = norms_X if (bags_X is bags_Y) else np.ones(nY, dtype=float)
+            norms_Y = norms_X if (
+                bags_X is bags_Y) else np.ones(nY, dtype=float)
         elif self.normalizer == "average":
             norms_X = np.array([max(b.n, 1) for b in bags_X], dtype=float)
-            norms_Y = norms_X if (bags_X is bags_Y) else np.array([max(b.n, 1) for b in bags_Y], dtype=float)
+            norms_Y = norms_X if (bags_X is bags_Y) else np.array(
+                [max(b.n, 1) for b in bags_Y], dtype=float)
         else:  # "featurespace"
             if isinstance(self.inst_kernel, Linear):
                 # For linear kernels, the feature map is the identity, so the
@@ -264,7 +271,8 @@ class WeightedMeanBagKernel(BaseBagKernel):
                 if bags_X is bags_Y:
                     norms_Y = norms_X
                 else:
-                    K_self_Y = (Sy @ (self.inst_kernel(Y_stack, Y_stack))) @ Sy.T
+                    K_self_Y = (
+                        Sy @ (self.inst_kernel(Y_stack, Y_stack))) @ Sy.T
                     norms_Y = np.sqrt(np.maximum(np.diag(K_self_Y), 1e-12))
 
         # ---- apply exponent p and normalization
@@ -312,11 +320,3 @@ def make_bag_kernel(
         normalizer=normalizer,
         p=p,
     )
-
-
-__all__ = [
-    "WeightedMeanBagKernel",
-    "PrecomputedBagKernel",
-    "make_bag_kernel",
-    "BaseBagKernel"
-]
