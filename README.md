@@ -1,10 +1,11 @@
 # Multiple-Instance Support Vector Machines in Python
 
-[![PyPI - Version](https://img.shields.io/pypi/v/sawmil?style=flat-square)](https://pypi.org/project/sawmil/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/sawmil?style=flat-square)](https://pypi.org/project/sawmil/)
-[![PyPI - Status](https://img.shields.io/pypi/status/sawmil?style=flat-square)](https://pypi.org/project/sawmil/)
-[![GitHub License](https://img.shields.io/github/license/carlomarxdk/sawmil?style=flat-square)](https://github.com/carlomarxdk/sawmil/blob/main/LICENSE)
+[![PyPI - Version](https://img.shields.io/pypi/v/sawmil)](https://pypi.org/project/sawmil/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/sawmil)](https://pypi.org/project/sawmil/)
+[![PyPI - Status](https://img.shields.io/pypi/status/sawmil)](https://pypi.org/project/sawmil/)
+[![GitHub License](https://img.shields.io/github/license/carlomarxdk/sawmil)](https://github.com/carlomarxdk/sawmil/blob/main/LICENSE)
 [![Documentation](https://readthedocs.org/projects/sawmil/badge/?version=latest)](https://sawmil.readthedocs.io/en/latest/?badge=latest)
+[![codecov](https://codecov.io/github/carlomarxdk/sawmil/graph/badge.svg?token=0UY8N6FH4Y)](https://codecov.io/github/carlomarxdk/sawmil)
 [![DOI](https://zenodo.org/badge/1046623935.svg)](https://doi.org/10.5281/zenodo.16990499)
 
 `sAwMIL` (**S**parse **Aw**are **M**ultiple-**I**nstance **L**earning) is an open-source Python library providing a collection of Support Vector Machine (SVM) classifiers for multiple-instance learning (MIL). It builds upon ideas from the earlier [misvm](https://github.com/garydoranjr/misvm) package, adapting it for the latest Python version, as well as introducing new models.
