@@ -1,4 +1,4 @@
-__version__ = "0.1.12"
+__version__ = "0.2.1"
 
 from .svm import SVM as SVM
 from .nsk import NSK as NSK
