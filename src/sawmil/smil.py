@@ -86,12 +86,14 @@ class sMIL(NSK):
         self.classes_ = classes.astype(float)
         Y = np.where(y_train == classes[0], -1.0, 1.0)
         self.y_ = Y
-
+        if self.verbose:
+            print(f"sMIL training set: {S_n} negative instances, {B_p} positive bags")
         # 2) bag kernel Gram
         bk = self._ensure_bag_kernel()
         bk.fit(train_bags)
         K = bk(train_bags, train_bags)                     # (n, n)
-
+        if self.verbose:
+            print(f"Gram matrix computed: K.shape = {K.shape}")
         # 3) QP pieces
         H = (Y[:, None] * Y[None, :]) * K
         n = len(train_bags)
@@ -111,7 +113,8 @@ class sMIL(NSK):
             bC = float(self.C)
         lb = np.zeros(n, dtype=float)
         ub = np.concatenate([np.full(S_n, iC), np.full(B_p, bC)]).astype(float)
-
+        if self.verbose:
+            print(f"QP: n={n}, iC={iC:.4g}, bC={bC:.4g}")
         # 4) solve
         alpha, _ = quadprog(H, f, Aeq, beq, lb, ub,
                             verbose=self.verbose, solver=self.solver, solver_params=self.solver_params)

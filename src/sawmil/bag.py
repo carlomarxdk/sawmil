@@ -10,13 +10,41 @@ Label = float
 
 @dataclass
 class Bag:
-    """A bag of instances with a bag-level label and per-instance (0/1) flags."""
+    """A bag of instances with a bag-level label and per-instance mask flags.
+
+    Args:
+        X (np.ndarray of float, shape (n_i, d)):
+            Instance feature matrix where each row is a feature vector.
+        y (Label):
+            Bag-level label (e.g., 0/1 or -1/+1).
+        intra_bag_mask (np.ndarray, shape (n_i,), optional):
+            Optional array of 0/1 flags indicating which instances are active.
+            If ``None``, defaults to all ones.
+
+    Attributes:
+        X (np.ndarray, shape (n_i, d)):
+            Instance feature matrix.
+        y (Label):
+            Bag label.
+        intra_bag_mask (np.ndarray, shape (n_i,)):
+            Per-instance 0/1 mask.
+    """
+
+    X: npt.NDArray[np.float64]
+    y: Label
+    intra_bag_mask: Optional[npt.NDArray[np.float64]] = None
     X: npt.NDArray[np.float64]            # shape (n_i, d)
     y: Label                              # bag label (e.g., 0/1 or -1/+1)
     intra_bag_mask: Optional[npt.NDArray[np.float64]
                               ] = None  # shape (n_i,), 0/1
 
     def __post_init__(self):
+        """Validate and normalize input arrays.
+
+        Raises:
+            ValueError: If ``X`` is not 2D or if ``intra_bag_mask`` length
+                does not match the number of instances.
+        """
         self.X = np.asarray(self.X, dtype=float)
         if self.X.ndim != 2:
             raise ValueError("Bag.X must be 2D (n_i, d).")
@@ -33,17 +61,17 @@ class Bag:
 
     @property
     def n(self) -> int:
-        '''Number of instances in the bag.'''
+        """Number of instances in the bag."""
         return self.X.shape[0]
 
     @property
     def d(self) -> int:
-        '''Number of features.'''
+        """Number of features."""
         return self.X.shape[1]
 
     @property
     def mask(self) -> npt.NDArray[np.float64]:
-        """Intra-bag mask."""
+        """Intra-bag mask, specifies which instances could potentially contain the relevant signal (1) or not (0)."""
         return np.clip(self.intra_bag_mask, 0.0, 1.0)
 
     def positives(self) -> npt.NDArray[np.int64]:
@@ -64,7 +92,7 @@ class BagDataset:
     def from_arrays(
         bags: Sequence[np.ndarray],
         y: Sequence[float],
-        intra_bag_mask: Sequence[np.ndarray] | None = None
+        intra_bag_masks: Sequence[np.ndarray] | None = None
     ) -> "BagDataset":
         """Create a :class:`BagDataset` from raw numpy arrays.
 

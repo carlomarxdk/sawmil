@@ -30,13 +30,14 @@ classifiers = [
 dependencies = [
   "numpy>=1.22",
   "scikit-learn>=1.2",
+  "scipy>=1.16.1",
 ]
 
 [project.optional-dependencies]
 gurobi = ["gurobipy>=12.0.3"]
-osqp   = ["osqp>=1.0.4", "scipy>=1.16.1"]
-daqp   = ["daqp>=0.5", "scipy>=1.16.1"]
-full = ["gurobipy>=12.0.3", "osqp>=1.0.4", "scipy>=1.16.1"]
+osqp   = ["osqp>=1.0.4"]
+daqp   = ["daqp>=0.5"]
+full = ["gurobipy>=12.0.3", "osqp>=1.0.4"]
 dev = ["pytest>=7", "pytest-cov", "build", "twine", "ruff", "mypy"]
 docs = [
   "mkdocs>=1.5",

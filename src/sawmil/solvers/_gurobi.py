@@ -83,16 +83,13 @@ def quadprog_gurobi(
             raise ValueError(f"Unknown Gurobi parameter: '{k}'") from exc
 
 
-    # Optional warm start
+    x = model.addMVar(n, lb=lb, ub=ub, name="alpha")
+
     if "start" in params and params["start"] is not None:
-        log.info("Using provided 'start' for warm start")
         start = np.asarray(params["start"], dtype=float)
         if start.shape != (n,):
             raise ValueError(f"start must have shape ({n},), got {start.shape}")
         x.Start = start
-
-
-    x = model.addMVar(n, lb=lb, ub=ub, name="alpha")
     obj = 0.5 * (x @ H @ x) + f @ x
     model.setObjective(obj, gp.GRB.MINIMIZE)
 

@@ -26,6 +26,12 @@ def _check_param(d, key):
         raise KeyError(f"Missing required parameter: '{key}'")
     return d[key]
 
+def _nearest_psd(H: np.ndarray, eps: float = 1e-10) -> np.ndarray:
+    # assumes H is symmetric
+    w, V = np.linalg.eigh(H)
+    w_clipped = np.maximum(w, eps)
+    return (V * w_clipped) @ V.T  # V @ diag(w_clipped) @ V.T
+
 def _validate_and_stabilize(
     H: npt.NDArray[np.float64],
     f: npt.NDArray[np.float64],
@@ -33,7 +39,7 @@ def _validate_and_stabilize(
     beq: Optional[npt.NDArray[np.float64]],
     lb: npt.NDArray[np.float64],
     ub: npt.NDArray[np.float64],
-    jitter: float = 1e-12,
+    jitter: float = 1e-8,
     stabilize: bool = True
 ):
     """

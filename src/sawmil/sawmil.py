@@ -17,6 +17,7 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
     '''Sparse Aware MIL (SVM)'''
     C: float = 1.0
     kernel: KernelType = "Linear"
+    sil_kernel: KernelType = "Linear"
     # bag-kernel options used inside sMIL (stage 1)
     normalizer: str = "none"   # recommend "none" for sMIL
     p: float = 1.0
@@ -40,6 +41,8 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
     coef_: npt.NDArray[np.float64] | None = None
     intercept_: float | None = None
     cutoff_: float | None = None
+    
+    solver_params: Optional[dict] = None  # passed to quadprog
 
     # ---------- helpers ----------
     @staticmethod
@@ -92,41 +95,24 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
         return [Bag(X=X[j:j+1, :], y=y) for j in range(X.shape[0])]
 
     # ---------- core ----------
-    def fit(
-        self,
-        bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray],
-        y: Optional[npt.NDArray[np.float64]] = None,
-        intra_bag_mask: Optional[Sequence[np.ndarray]] = None,
-    ) -> "sAwMIL":
-        '''Fit the model to the training data.'''
-        # 1) coerce input
-        blist = self._coerce_bags(bags, y, intra_bag_mask)
-        if not blist:
-            raise ValueError("No bags provided.")
-
-        # 2) sMIL (stage 1) — use its decision on singletons to rank instances
-        smil = sMIL(
+    def __fit_mil__(self,bags: List[Bag]):
+        smil =  sMIL(
             C=self.C,
             kernel=self.kernel,
             normalizer=self.normalizer,
             p=self.p,
-            scale_C=self.scale_C,        # <-- use the sMIL-specific flag
+            scale_C=self.scale_C, 
             tol=self.tol,
             verbose=self.verbose,
         )
-        smil.fit(blist)
+        smil.fit(bags)
         self.smil_ = smil
-
-        # 3) gather all instances
-        X_all, y_bag, mask, _ = self._flatten(blist)
+        
+    def __rank_and_filter__(self, bags: List[Bag]) -> Tuple[np.ndarray, np.ndarray]:
+                # 3) gather all instances
+        X_all, y_bag, mask, _ = self._flatten(bags)
         if X_all.shape[0] == 0:
-            # degenerate
-            self.sil_ = SVM(C=self.C, kernel="linear",
-                            solver=self.solver, tol=self.tol, verbose=self.verbose)
-            self.sil_.coef_, self.sil_.intercept_ = np.zeros(
-                (blist[0].d,)), 0.0
-            self.coef_, self.intercept_, self.cutoff_ = self.sil_.coef_, self.sil_.intercept_, 0.0
-            return self
+            raise ValueError("No instances in the provided bags.")
 
         # split by bag label
         pos_inst = (y_bag > 0)
@@ -136,21 +122,11 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
 
         # no positives? fall back to all negative labels for SIL
         if X_pos.shape[0] == 0:
-            X_sil = X_neg
-            y_sil = -np.ones(X_neg.shape[0], dtype=float)
-            sil = SVM(C=self.C, kernel=self.kernel, solver=self.solver,
-                      tol=self.tol, verbose=self.verbose)
-            sil.fit(X_sil, y_sil)
-            self.sil_ = sil
-            self.coef_ = sil.coef_.ravel() if sil.coef_ is not None else None
-            self.intercept_ = float(
-                sil.intercept_) if sil.intercept_ is not None else None
-            self.cutoff_ = float("-inf")
-            return self
+            raise ValueError("No positive bags in the provided data.")
 
         # 4) score positive-bag instances with sMIL (as singleton bags)
         pos_singletons = self._singletonize(X_pos, y=+1.0)
-        S_pos = smil.decision_function(pos_singletons).ravel()
+        S_pos = self.smil_.decision_function(pos_singletons).ravel()
 
         # 5) select top-eta under the intra-label mask
         eta = float(self.eta)
@@ -177,6 +153,24 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
         y_pos[chosen] = +1.0
         X_sil = np.vstack([X_neg, X_pos])
         y_sil = np.hstack([-np.ones(X_neg.shape[0], dtype=float), y_pos])
+        
+        return X_sil, y_sil
+    
+    def fit(
+        self,
+        bags: Sequence[Bag] | BagDataset | Sequence[np.ndarray],
+        y: Optional[npt.NDArray[np.float64]] = None,
+        intra_bag_mask: Optional[Sequence[np.ndarray]] = None,
+    ) -> "sAwMIL":
+        '''Fit the model to the training data.'''
+        # 1) coerce input
+        blist = self._coerce_bags(bags, y, intra_bag_mask)
+        if not blist:
+            raise ValueError("No bags provided.")
+
+        # 2) sMIL (stage 1) — use its decision on singletons to rank instances
+        self.__fit_mil__(blist)
+        X_sil, y_sil = self.__rank_and_filter__(blist)
 
         # 7) train instance SVM (stage 2) — pass solver here
         sil = SVM(
@@ -185,6 +179,7 @@ class sAwMIL(BaseEstimator, ClassifierMixin):
             solver=self.solver,
             tol=self.tol,
             verbose=self.verbose,
+            solver_params=self.solver_params,
         )
         sil.fit(X_sil, y_sil)
         self.sil_ = sil
