@@ -40,9 +40,10 @@ jobs:
           pip install -e ".[dev,osqp]"
 
       - name: Run tests
-        run: pytest -q
+        run: pytest --cov --cov-branch --cov-report=xml
         env:
           PYTHONWARNINGS: default
+      
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
