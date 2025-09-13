@@ -64,7 +64,7 @@ class RBF(BaseKernel):
 class Polynomial(BaseKernel):
     """Polynomial kernel: K(x, y) = (gamma * x^T y + coef0)^degree"""
     degree: int = 3
-    gamma: Optional[float] = None
+    gamma: float = 1.0
     coef0: float = 0.0
 
     def fit(self, X: npt.NDArray[np.float64]) -> "Polynomial":
